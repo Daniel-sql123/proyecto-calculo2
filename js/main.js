@@ -2,13 +2,22 @@ import { StorageService } from "./core/StorageService.js";
 import { Toast } from "./core/Toast.js";
 import { AvatarService } from "./auth/AvatarService.js";
 import { AuthService } from "./auth/AuthService.js";
+
 import { QuestionBank } from "./quiz/QuestionBank.js";
+import { QuestionBankEditable } from "./quiz/QuestionBankEditable.js";
+
 import { QuizEngine } from "./quiz/QuizEngine.js";
 import { UIController } from "./ui/UIController.js";
+
+import { StatsService } from "./stats/StatsService.js";
+import { AchievementService } from "./achievements/AchievementService.js";
 
 const storage = new StorageService();
 const toast = new Toast(document.querySelector("#toast"));
 
+/* =========================
+   SKINS
+========================= */
 const skins = [
   {
     id: "wizard",
@@ -248,15 +257,16 @@ const skins = [
   },
 ];
 
+/* =========================
+   OUTFITS (con bloqueo)
+========================= */
 const outfits = [
-  {
-    id: "none",
-    name: "Sin ropa",
-    svg: ``
-  },
+  { id: "none", name: "Sin ropa", svg: ``, locked:false },
+
   {
     id: "hoodie",
     name: "Hoodie",
+    locked: false,
     svg: `
 <svg viewBox="0 0 64 64" width="100%" height="100%" aria-hidden="true" class="outfit">
   <path d="M18 50c2-14 6-22 14-22s12 8 14 22" fill="rgba(255,255,255,.18)"/>
@@ -264,9 +274,11 @@ const outfits = [
   <path d="M26 42c2 2 10 2 12 0" stroke="rgba(255,255,255,.65)" stroke-width="2" stroke-linecap="round" fill="none"/>
 </svg>`
   },
+
   {
     id: "cape",
     name: "Capa",
+    locked: true, // 🔒 se desbloquea por logro
     svg: `
 <svg viewBox="0 0 64 64" width="100%" height="100%" aria-hidden="true" class="outfit">
   <path d="M18 30l14 8 14-8v26c-8 4-20 4-28 0z" fill="rgba(255,255,255,.16)"/>
@@ -274,9 +286,11 @@ const outfits = [
   <circle cx="32" cy="30" r="3" fill="rgba(255,255,255,.35)"/>
 </svg>`
   },
+
   {
     id: "labcoat",
     name: "Bata",
+    locked: true, // 🔒 se desbloquea por logro
     svg: `
 <svg viewBox="0 0 64 64" width="100%" height="100%" aria-hidden="true" class="outfit">
   <path d="M22 26c2 2 6 4 10 4s8-2 10-4c6 6 8 14 8 26c-6 4-10 6-18 6s-12-2-18-6c0-12 2-20 8-26z"
@@ -285,9 +299,11 @@ const outfits = [
   <path d="M28 44h-6" stroke="rgba(255,255,255,.55)" stroke-width="3" stroke-linecap="round"/>
 </svg>`
   },
+
   {
     id: "glasses",
     name: "Gafas",
+    locked: false,
     svg: `
 <svg viewBox="0 0 64 64" width="100%" height="100%" aria-hidden="true" class="outfit">
   <rect x="18" y="28" width="12" height="10" rx="4" fill="rgba(0,0,0,.30)" stroke="rgba(255,255,255,.35)"/>
@@ -297,39 +313,121 @@ const outfits = [
   }
 ];
 
-
+/* =========================
+   AVATAR SERVICE
+========================= */
 const avatarService = new AvatarService({
   skins,
   outfits,
   colors: ["#1E85CA","#5EB04A","#81C55E","#FEBE29","#E37624","#9B59B6","#FF6FAE","#00C2A8"]
 });
 
+/* =========================
+   SERVICES
+========================= */
 const auth = new AuthService(storage, toast, avatarService);
-const bank = new QuestionBank();
+
+const defaultBank = new QuestionBank();
+const bank = new QuestionBankEditable(storage, defaultBank.questions);
+
 const quiz = new QuizEngine(storage, toast, bank);
-const ui = new UIController({ toast, auth, quiz, avatarService });
+
+const stats = new StatsService(storage);
+const ach = new AchievementService(storage, toast);
+
+/* =========================
+   ACHIEVEMENTS
+========================= */
+const achievements = [
+  {
+    id: "first_correct",
+    title: "Primer acierto",
+    desc: "Acertaste tu primera pregunta.",
+    check: ({ userStats }) => (userStats.totalCorrect >= 1)
+  },
+  {
+    id: "streak5",
+    title: "Racha x5",
+    desc: "5 correctas seguidas.",
+    check: ({ runtime }) => runtime.streak >= 5
+  },
+  {
+    id: "perfect_level1",
+    title: "Nivel 1 perfecto",
+    desc: "Completaste el Nivel 1 con 3 vidas.",
+    check: ({ runtime }) => runtime.lastLevelCompleted === 1 && runtime.livesAtEnd === 3
+  },
+  {
+    id: "unlock_cape",
+    title: "Desbloqueaste Capa",
+    desc: "Consigue 120 puntos.",
+    check: ({ runtime }) => runtime.points >= 120,
+    onUnlock: ({ unlocks }) => { unlocks.cape = true; }
+  },
+  {
+    id: "unlock_labcoat",
+    title: "Desbloqueaste Bata",
+    desc: "Consigue 180 puntos.",
+    check: ({ runtime }) => runtime.points >= 180,
+    onUnlock: ({ unlocks }) => { unlocks.labcoat = true; }
+  }
+];
+
+/* =========================
+   UNLOCKS PER USER
+========================= */
+function getUnlocks(storageSvc, username){
+  const key = `unlocks_${username}`;
+  return storageSvc.getItem(key) || {};
+}
+
+function saveUnlocks(storageSvc, username, obj){
+  const key = `unlocks_${username}`;
+  storageSvc.setItem(key, obj);
+}
+
+/* =========================
+   UI CONTROLLER
+========================= */
+const ui = new UIController({
+  toast,
+  auth,
+  quiz,
+  avatarService,
+  bank,
+  stats,
+  ach,
+  achievements,
+  getUnlocks,
+  saveUnlocks,
+  storage
+});
 
 ui.init();
 
-// Reglas: abrir/cerrar overlay modal
+/* =========================
+   RULES MODAL
+========================= */
 const btnRules = document.getElementById("btnRules");
 const rulesOverlay = document.getElementById("rulesOverlay");
 const btnCloseRules = document.getElementById("btnCloseRules");
 
-function openRules() {
-  if (rulesOverlay) rulesOverlay.classList.add("show");
+function openRules(){
+  if(rulesOverlay) rulesOverlay.classList.add("show");
 }
 
-function closeRules() {
-  if (rulesOverlay) rulesOverlay.classList.remove("show");
+function closeRules(){
+  if(rulesOverlay) rulesOverlay.classList.remove("show");
 }
 
-if (btnRules) btnRules.addEventListener("click", (e) => { e.preventDefault(); openRules(); });
-if (btnCloseRules) btnCloseRules.addEventListener("click", () => closeRules());
-if (rulesOverlay) {
+if(btnRules) btnRules.addEventListener("click", (e) => { e.preventDefault(); openRules(); });
+if(btnCloseRules) btnCloseRules.addEventListener("click", () => closeRules());
+if(rulesOverlay){
   rulesOverlay.addEventListener("click", (e) => {
-    if (e.target === rulesOverlay) closeRules();
+    if(e.target === rulesOverlay) closeRules();
   });
 }
 
-document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeRules(); });
+document.addEventListener("keydown", (e) => {
+  if(e.key === "Escape") closeRules();
+});
