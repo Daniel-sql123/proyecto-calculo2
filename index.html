@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Grupo 1 — La Integral | Quiz Pro</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div class="stars"></div>
+  <div class="stars stars2"></div>
+  <div class="video-bg">
+    <video autoplay muted loop playsinline>
+        <source src="assets/video/0_Space_Planets_1080x1920.mp4" type="video/mp4">
+    </video>
+</div>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true">
+          <svg width="100%" height="100%" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="sphereGrad" cx="40%" cy="40%">
+                <stop offset="0%" style="stop-color:#00d4ff;stop-opacity:1" />
+                <stop offset="60%" style="stop-color:#00a8ff;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#b300ff;stop-opacity:1" />
+              </radialGradient>
+              <filter id="glow">
+                <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                <feMerge>
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+            </defs>
+            
+            <!-- Órbita externa -->
+            <circle cx="60" cy="60" r="50" fill="none" stroke="#00d4ff" stroke-width="1.5" opacity="0.6"/>
+            
+            <!-- Órbitas internas rotadas -->
+            <ellipse cx="60" cy="60" rx="45" ry="35" fill="none" stroke="#b300ff" stroke-width="1" opacity="0.5" transform="rotate(45 60 60)"/>
+            <ellipse cx="60" cy="60" rx="40" ry="30" fill="none" stroke="#00d4ff" stroke-width="1" opacity="0.5" transform="rotate(-45 60 60)"/>
+            
+            <!-- Puntos de órbita -->
+            <circle cx="110" cy="60" r="2.5" fill="#00d4ff" filter="url(#glow)"/>
+            <circle cx="10" cy="60" r="2.5" fill="#b300ff" filter="url(#glow)"/>
+            <circle cx="60" cy="15" r="2.5" fill="#00d4ff" filter="url(#glow)"/>
+            <circle cx="60" cy="105" r="2.5" fill="#b300ff" filter="url(#glow)"/>
+            
+            <!-- Puntos intermedios -->
+            <circle cx="90" cy="30" r="1.8" fill="#00d4ff" opacity="0.8"/>
+            <circle cx="30" cy="90" r="1.8" fill="#b300ff" opacity="0.8"/>
+            
+            <!-- Esfera central con gradiente -->
+            <circle cx="60" cy="60" r="32" fill="url(#sphereGrad)" filter="url(#glow)"/>
+            
+            <!-- Brillo en la esfera -->
+            <circle cx="50" cy="50" r="12" fill="white" opacity="0.3" filter="url(#glow)"/>
+            
+            <!-- Símbolo de integral -->
+            <g transform="translate(60, 60)">
+              <!-- Integral curva -->
+              <path d="M -2 -14 Q -8 -8, -6 0 Q -4 8, 4 14" 
+                    fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" filter="url(#glow)"/>
+              <!-- Punto arriba -->
+              <circle cx="-2" cy="-16" r="1.5" fill="white"/>
+              <!-- Punto abajo -->
+              <circle cx="4" cy="16" r="1.5" fill="white"/>
+            </g>
+          </svg>
+        </div>
+        <div>
+          <h1>Grupo 1: La integral — Quiz Pro por niveles</h1>
+          <p>Fórmulas básicas • Propiedades • Sustitución • Por partes</p>
+        </div>
+      </div>
+
+      <div class="topActions">
+        <div class="pill" id="userPill" style="display:none;">
+          <div class="avatar" id="hudAvatar" aria-label="Avatar"></div>
+          <div style="display:grid;gap:2px;">
+            <div style="font-weight:900; line-height:1;" id="hudName">Usuario</div>
+            <div class="small" id="hudMeta">Nivel 1 • 0 pts</div>
+          </div>
+        </div>
+
+        <button class="btn ghost" id="btnRules">Reglas</button>
+        <button class="btn" id="btnReset">Reiniciar nivel</button>
+        <button class="btn danger" id="btnLogout" style="display:none;">Salir</button>
+        <button class="btn primary" id="btnOpenAuth">Entrar / Registrarme</button>
+      </div>
+    </header>
+
+    <main class="grid">
+      <!-- Quiz -->
+      <section class="card">
+        <h2>Zona de práctica</h2>
+        <p class="muted" style="margin-top:0;">
+          Ganas puntos al acertar. Si fallas, pierdes una vida y recibes explicación + orientación.
+        </p>
+
+        <div class="hud">
+          <div class="hudRow">
+            <div class="stat">
+              <div class="k">Nivel</div>
+              <div class="v" id="statLevel">—</div>
+            </div>
+            <div class="stat">
+              <div class="k">Puntos</div>
+              <div class="v" id="statPoints">—</div>
+            </div>
+            <div class="stat">
+              <div class="k">Vidas</div>
+              <div class="c" id="statLives">—</div>
+            </div>
+          </div>
+
+          <div class="stat">
+            <div class="k">Progreso del nivel</div>
+            <div class="bar">
+              <div id="progressBar"></div>
+            </div>
+            <div class="small" id="progressText" style="margin-top:6px;">—</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="question" id="questionArea" aria-live="polite">
+          <div class="qTitle">
+            <div class="badge" id="diffBadge">—</div>
+            <div class="badge" id="qCounter">—</div>
+          </div>
+
+          <p class="prompt" id="qPrompt">Inicia sesión para comenzar.</p>
+          <div id="qBody"></div>
+
+          <div class="feedback" id="feedback">
+            <p class="t" id="fbTitle">—</p>
+            <p class="d" id="fbDesc">—</p>
+          </div>
+
+          <div class="footerRow">
+            <div class="kbd" id="tipBox">Tip: usa la retroalimentación para aprender, no solo para “adivinar”.</div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;">
+              <button class="btn ghost" id="btnSkip" disabled>Omitir</button>
+              <button class="btn primary" id="btnNext" disabled>Siguiente</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Rules panel removed: rules are shown via modal only -->
+    </main>
+  </div>
+
+  <!-- Auth overlay -->
+  <div class="overlay" id="authOverlay" role="dialog" aria-modal="true" aria-label="Ingreso y registro">
+    <div class="auth">
+      <section class="card">
+        <h2>Acceso</h2>
+        <p class="muted" style="margin-top:0;">Crea tu usuario, elige avatar y guarda progreso en este navegador.</p>
+
+        <div class="tabs" role="tablist">
+          <button class="tab active" id="tabLogin" role="tab" aria-selected="true">Iniciar sesión</button>
+          <button class="tab" id="tabRegister" role="tab" aria-selected="false">Registrarme</button>
+        </div>
+
+        <div id="loginPane">
+          <div class="form">
+            <div>
+              <label for="loginUser">Usuario</label>
+              <input id="loginUser" autocomplete="username" placeholder="Ej: maria_10" />
+            </div>
+            <div>
+              <label for="loginPass">Contraseña</label>
+              <input id="loginPass" type="password" autocomplete="current-password" placeholder="••••••••" />
+            </div>
+            <button class="btn primary" id="btnLogin">Entrar</button>
+            <button class="btn ghost" id="btnCloseAuth1">Cerrar</button>
+          </div>
+        </div>
+
+        <div id="registerPane" style="display:none;">
+          <div class="form">
+            <div>
+              <label for="regUser">Usuario</label>
+              <input id="regUser" autocomplete="username" placeholder="Ej: grupo1_ana" />
+            </div>
+            <div>
+              <label for="regPass">Contraseña</label>
+              <input id="regPass" type="password" autocomplete="new-password" placeholder="Mínimo 4 caracteres" />
+            </div>
+            <div>
+              <label for="regInitial">Inicial (para tu avatar)</label>
+              <input id="regInitial" maxlength="1" placeholder="Ej: A" />
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="avatarPicker">
+
+              <div class="muted" style="font-size:12px; font-weight:800;">
+                Elige tu estilo
+              </div>
+              <div class="faces" id="facePicker"></div>
+
+              <!-- 👇 AQUI VA LA ROPA -->
+              <div class="muted" style="font-size:12px; font-weight:800;">
+                Elige ropa
+              </div>
+              <div class="outfits" id="outfitPicker"></div>
+
+              <div class="muted" style="font-size:12px; font-weight:800;">
+                Elige un color
+              </div>
+              <div class="swatches" id="colorPicker"></div>
+
+              <div class="muted" style="font-size:12px;">
+                Se guarda con tu cuenta (local). Para tareas, esto es suficiente.
+              </div>
+
+            </div>
+
+
+            <button class="btn primary" id="btnRegister">Crear cuenta</button>
+            <button class="btn ghost" id="btnCloseAuth2">Cerrar</button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="card">
+        <h2>¿Qué se practica?</h2>
+        <div class="rules">
+          <div class="rule"><b>Fórmulas:</b> potencias, trigonométricas, e^x, 1/x.</div>
+          <div class="rule"><b>Propiedades:</b> linealidad y constante de integración.</div>
+          <div class="rule"><b>Sustitución:</b> cambio de variable (u-sub).</div>
+          <div class="rule"><b>Por partes:</b> ∫u dv = u·v − ∫v du.</div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <!-- Reglas: overlay modal -->
+  <div class="overlay" id="rulesOverlay" role="dialog" aria-modal="true" aria-label="Reglas">
+    <div class="card" style="max-width:820px; width:100%; position:relative;">
+      <button class="btn ghost" id="btnCloseRules" style="position:absolute; right:12px; top:12px;">Cerrar</button>
+      <h2>Reglas de uso (compañeros y docente)</h2>
+      <div class="rules">
+        <div class="rule"><b>1) Honestidad académica:</b> no copiar; aprende del error.</div>
+        <div class="rule"><b>2) Retroalimentación obligatoria:</b> revisa el porqué del fallo antes de seguir.</div>
+        <div class="rule"><b>3) Respeto:</b> errores ≠ burlas.</div>
+        <div class="rule"><b>4) Docente:</b> puede solicitar evidencia (nivel/puntos).</div>
+        <div class="rule"><b>5) Sugerencia:</b> 15–25 min por sesión.</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <h2>Cómo se gana</h2>
+      <div class="rules">
+        <div class="rule"><b>Puntos:</b> +10 fácil, +15 medio, +20 difícil.</div>
+        <div class="rule"><b>Vidas:</b> 3 por nivel. Error u omitir = −1 vida.</div>
+        <div class="rule"><b>Avance:</b> completa el nivel para subir de dificultad.</div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+
+</html>
