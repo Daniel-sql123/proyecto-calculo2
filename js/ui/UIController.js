@@ -1,5 +1,87 @@
 import { PodiumService } from "../podium/PodiumService.js";
 
+/* =========================
+   AUDIO (SIN ARCHIVO EXTRA)
+========================= */
+class AudioService {
+  constructor({ baseUrl, musicFile, sfxFiles } = {}) {
+    // baseUrl apunta a la carpeta /audio/ al lado del index.html
+    this.baseUrl = baseUrl || new URL("audio/", document.baseURI).href;
+
+    this.enabled = true;
+    this.unlocked = false;
+
+    // Música
+    this.music = new Audio(this.baseUrl + (musicFile || "music.mp3"));
+    this.music.loop = true;
+    this.music.volume = 0.25;
+
+    // SFX
+    this.sfx = {};
+    const files = sfxFiles || {
+      click: "click.mp3",
+      ok: "correct.mp3",
+      bad: "wrong.mp3",
+      levelup: "levelup.mp3",
+      gameover: "gameover.mp3",
+    };
+
+    for (const [k, file] of Object.entries(files)) {
+      const a = new Audio(this.baseUrl + file);
+      a.volume = 0.6;
+      this.sfx[k] = a;
+    }
+  }
+
+  unlock() {
+    if (this.unlocked) return;
+    this.unlocked = true;
+
+    // Intento de desbloqueo (silencioso)
+    try {
+      this.music.muted = true;
+      const p = this.music.play();
+      const finish = () => {
+        this.music.pause();
+        this.music.currentTime = 0;
+        this.music.muted = false;
+      };
+      if (p?.then) p.then(finish).catch(() => { });
+      else finish();
+    } catch {
+      // ignore
+    }
+  }
+
+  playMusic() {
+    if (!this.enabled) return;
+    this.music.play().catch(() => { });
+  }
+
+  stopMusic() {
+    this.music.pause();
+    this.music.currentTime = 0;
+  }
+
+  playSfx(name) {
+    if (!this.enabled) return;
+    const a = this.sfx[name];
+    if (!a) return;
+
+    // Clon para permitir sonidos seguidos
+    const clone = a.cloneNode();
+    clone.volume = a.volume;
+    clone.play().catch(() => { });
+  }
+
+  toggleMute() {
+    this.enabled = !this.enabled;
+    if (!this.enabled) this.music.pause();
+    else this.playMusic();
+    return this.enabled;
+  }
+}
+
 export class UIController {
   constructor({
     toast, auth, quiz, avatarService,
@@ -11,6 +93,9 @@ export class UIController {
     this.quiz = quiz;
     this.avatarService = avatarService;
     this.podiumService = new PodiumService();
+
+    // ✅ AUDIO listo (carpeta /audio al lado del index.html)
+    this.audio = new AudioService();
 
     // ✅ nuevos servicios / helpers
     this.bank = bank;
@@ -90,54 +175,69 @@ export class UIController {
 
   init() {
     this.bindEvents();
-    this.mountAvatarPickers();      // se puede montar sin sesión
-    this.restoreSessionIfAny();     // si hay sesión, luego lo recalculamos
-    this.mountAvatarPickers();      // ✅ vuelve a montar ya con unlocks del usuario
+    this.mountAvatarPickers();
+    this.restoreSessionIfAny();
+    this.mountAvatarPickers();
     this.renderAll();
     this.el.btnRules?.setAttribute("aria-expanded", "false");
   }
 
   bindEvents() {
+    // 🔓 Desbloquea audio con el PRIMER click del usuario (obligatorio)
+    document.addEventListener("click", () => this.audio.unlock(), { once: true });
+
     // auth open/close
-    this.el.btnOpenAuth?.addEventListener("click", () => this.openAuth());
-    this.el.btnCloseAuth1?.addEventListener("click", () => this.closeAuth());
-    this.el.btnCloseAuth2?.addEventListener("click", () => this.closeAuth());
+    this.el.btnOpenAuth?.addEventListener("click", () => { this.audio.playSfx("click"); this.openAuth(); });
+    this.el.btnCloseAuth1?.addEventListener("click", () => { this.audio.playSfx("click"); this.closeAuth(); });
+    this.el.btnCloseAuth2?.addEventListener("click", () => { this.audio.playSfx("click"); this.closeAuth(); });
 
     // tabs
-    this.el.tabLogin?.addEventListener("click", () => this.switchTab("login"));
-    this.el.tabRegister?.addEventListener("click", () => this.switchTab("register"));
+    this.el.tabLogin?.addEventListener("click", () => { this.audio.playSfx("click"); this.switchTab("login"); });
+    this.el.tabRegister?.addEventListener("click", () => { this.audio.playSfx("click"); this.switchTab("register"); });
 
     // actions
-    this.el.btnLogin?.addEventListener("click", () => this.handleLogin());
-    this.el.btnRegister?.addEventListener("click", () => this.handleRegister());
+    this.el.btnLogin?.addEventListener("click", () => { this.audio.playSfx("click"); this.handleLogin(); });
+    this.el.btnRegister?.addEventListener("click", () => { this.audio.playSfx("click"); this.handleRegister(); });
 
-    this.el.btnLogout?.addEventListener("click", () => this.handleLogout());
+    this.el.btnLogout?.addEventListener("click", () => { this.audio.playSfx("click"); this.handleLogout(); });
     this.el.btnReset?.addEventListener("click", () => {
+      this.audio.playSfx("click");
       if (!this.quiz.isLoggedIn()) return this.toast.show("Primero inicia sesión.");
       this.openResetModal();
     });
 
-    this.el.btnNext?.addEventListener("click", () => this.next());
-    this.el.btnSkip?.addEventListener("click", () => this.skip());
+    this.el.btnNext?.addEventListener("click", () => { this.audio.playSfx("click"); this.next(); });
+    this.el.btnSkip?.addEventListener("click", () => { this.audio.playSfx("click"); this.skip(); });
 
+    // Botones extra
     const btnStats = document.createElement("button");
     btnStats.className = "btn btn-cyan";
     btnStats.textContent = "Historial";
-    btnStats.addEventListener("click", () => this.openStatsModal());
+    btnStats.addEventListener("click", () => { this.audio.playSfx("click"); this.openStatsModal(); });
     document.querySelector(".topActions")?.prepend(btnStats);
 
     const btnAch = document.createElement("button");
     btnAch.className = "btn btn-purple";
     btnAch.textContent = "Logros";
-    btnAch.addEventListener("click", () => this.openAchievementsModal());
+    btnAch.addEventListener("click", () => { this.audio.playSfx("click"); this.openAchievementsModal(); });
     document.querySelector(".topActions")?.prepend(btnAch);
 
-const btnAdmin = document.createElement("button");
-btnAdmin.className = "btn btn-blue";
-btnAdmin.textContent = "Banco de preguntas";
-btnAdmin.addEventListener("click", () => this.openBankAdmin());
-document.querySelector(".topActions")?.prepend(btnAdmin);
+    const btnAdmin = document.createElement("button");
+    btnAdmin.className = "btn btn-blue";
+    btnAdmin.textContent = "Banco de preguntas";
+    btnAdmin.addEventListener("click", () => { this.audio.playSfx("click"); this.openBankAdmin(); });
+    document.querySelector(".topActions")?.prepend(btnAdmin);
 
+    // 🔊 / 🔇 Mute
+    const btnAudio = document.createElement("button");
+    btnAudio.className = "btn btn-green";
+    btnAudio.textContent = "🔊 Audio";
+    btnAudio.addEventListener("click", () => {
+      const on = this.audio.toggleMute();
+      btnAudio.textContent = on ? "🔊 Audio" : "🔇 Mute";
+      this.audio.playSfx("click");
+    });
+    document.querySelector(".topActions")?.prepend(btnAudio);
   }
 
   /* =========================
@@ -223,7 +323,6 @@ document.querySelector(".topActions")?.prepend(btnAdmin);
   mountAvatarPickers() {
     let outfits = this.avatarService.outfits;
 
-    // si NO hay usuario: no mostrar locked
     if (!this.quiz.user) {
       outfits = outfits.filter(o => !o.locked);
     } else {
@@ -236,7 +335,6 @@ document.querySelector(".topActions")?.prepend(btnAdmin);
       });
     }
 
-    // hack: swap temporal para dibujar picker
     const original = this.avatarService.outfits;
     this.avatarService.outfits = outfits;
 
@@ -244,278 +342,10 @@ document.querySelector(".topActions")?.prepend(btnAdmin);
       faceContainer: this.el.facePicker,
       outfitContainer: this.el.outfitPicker,
       colorContainer: this.el.colorPicker,
-      onChange: () => {}
+      onChange: () => { }
     });
 
     this.avatarService.outfits = original;
-  }
-
-  /* =========================
-     RESET MODAL
-  ========================= */
-  createResetModal() {
-    if (document.getElementById("resetModal")) return;
-
-    const ov = document.createElement("div");
-    ov.id = "resetModal";
-    ov.className = "overlay";
-    ov.setAttribute("role", "dialog");
-    ov.setAttribute("aria-modal", "true");
-    ov.innerHTML = `
-      <div class="card" style="max-width:420px;margin:16px;">
-        <h2>Reiniciar nivel</h2>
-        <p class="muted">Elige qué nivel quieres reiniciar.</p>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
-          <button class="btn" data-level="current">Reiniciar nivel actual</button>
-          <button class="btn" data-level="1">Reiniciar Nivel 1</button>
-          <button class="btn" data-level="2">Reiniciar Nivel 2</button>
-          <button class="btn" data-level="3">Reiniciar Nivel 3</button>
-          <button class="btn ghost" data-level="cancel">Cancelar</button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(ov);
-
-    ov.addEventListener("click", (e) => {
-      if (e.target === ov) this.closeResetModal();
-      const btn = e.target.closest("button[data-level]");
-      if (!btn) return;
-      const lvl = btn.dataset.level;
-
-      if (lvl === "cancel") return this.closeResetModal();
-      if (lvl === "current") return this.handleResetLevel();
-      const n = Number(lvl);
-      if (Number.isInteger(n)) return this.handleResetLevel(n);
-    });
-  }
-
-  openResetModal() {
-    this.createResetModal();
-    document.getElementById("resetModal")?.classList.add("show");
-  }
-
-  closeResetModal() {
-    document.getElementById("resetModal")?.classList.remove("show");
-  }
-
-  handleResetLevel(level) {
-    this.quiz.resetLevel(level);
-    this.closeResetModal();
-    this.clearFeedback();
-    this.renderAll();
-  }
-
-  /* =========================
-     STATS MODAL
-  ========================= */
-  createStatsModal() {
-    if (document.getElementById("statsOverlay")) return;
-
-    const ov = document.createElement("div");
-    ov.id = "statsOverlay";
-    ov.className = "overlay";
-    ov.setAttribute("role", "dialog");
-    ov.setAttribute("aria-modal", "true");
-    ov.innerHTML = `
-      <div class="card" style="max-width:820px; width:100%; position:relative;">
-        <button class="btn ghost" id="btnCloseStats" style="position:absolute; right:12px; top:12px;">Cerrar</button>
-        <h2>📊 Analíticas</h2>
-        <div id="statsBody" class="rules"></div>
-      </div>
-    `;
-    document.body.appendChild(ov);
-
-    ov.addEventListener("click", (e) => { if (e.target === ov) this.closeStatsModal(); });
-    ov.querySelector("#btnCloseStats").addEventListener("click", () => this.closeStatsModal());
-  }
-
-  openStatsModal() {
-    this.createStatsModal();
-    this.renderStats();
-    document.getElementById("statsOverlay")?.classList.add("show");
-  }
-
-  closeStatsModal() {
-    document.getElementById("statsOverlay")?.classList.remove("show");
-  }
-
-  renderStats() {
-    const body = document.getElementById("statsBody");
-    if (!body) return;
-
-    if (!this.quiz.user) {
-      body.innerHTML = `<div class="rule"><b>Inicia sesión</b> para ver tus stats.</div>`;
-      return;
-    }
-
-    const u = this.quiz.user.username;
-    const s = this.stats.getUserStats(u);
-
-    if (!s) {
-      body.innerHTML = `<div class="rule">Aún no hay datos. Juega unas preguntas 🙂</div>`;
-      return;
-    }
-
-    const total = s.totalCorrect + s.totalIncorrect;
-    const pct = total ? Math.round((s.totalCorrect / total) * 100) : 0;
-
-    const byLevelHtml = Object.keys(s.byLevel || {})
-      .sort((a, b) => Number(a) - Number(b))
-      .map(l => {
-        const x = s.byLevel[l];
-        const t = x.correct + x.incorrect;
-        const p = t ? Math.round((x.correct / t) * 100) : 0;
-        return `<div class="rule"><b>Nivel ${l}:</b> ✅ ${x.correct} / ❌ ${x.incorrect} — <b>${p}%</b></div>`;
-      }).join("");
-
-    const last = (s.sessions || []).slice(0, 5).map(ss => {
-      const date = new Date(ss.at);
-      return `<div class="rule"><b>${date.toLocaleString()}</b> — Nivel ${ss.level}, ${ss.points} pts (✅${ss.correct} ❌${ss.incorrect})</div>`;
-    }).join("");
-
-    body.innerHTML = `
-      <div class="rule"><b>Precisión total:</b> ${pct}% (✅ ${s.totalCorrect} / ❌ ${s.totalIncorrect})</div>
-      <div class="divider"></div>
-      <h3 style="margin:0 0 8px;">Por nivel</h3>
-      ${byLevelHtml || `<div class="rule">Sin datos por nivel.</div>`}
-      <div class="divider"></div>
-      <h3 style="margin:0 0 8px;">Últimas sesiones</h3>
-      ${last || `<div class="rule">Aún no hay sesiones registradas.</div>`}
-    `;
-  }
-
-  /* =========================
-     ACHIEVEMENTS MODAL
-  ========================= */
-  createAchievementsModal() {
-    if (document.getElementById("achOverlay")) return;
-
-    const ov = document.createElement("div");
-    ov.id = "achOverlay";
-    ov.className = "overlay";
-    ov.setAttribute("role", "dialog");
-    ov.setAttribute("aria-modal", "true");
-    ov.innerHTML = `
-      <div class="card" style="max-width:820px; width:100%; position:relative;">
-        <button class="btn ghost" id="btnCloseAch" style="position:absolute; right:12px; top:12px;">Cerrar</button>
-        <h2>🏆 Logros</h2>
-        <div id="achBody" class="rules"></div>
-      </div>
-    `;
-    document.body.appendChild(ov);
-
-    ov.addEventListener("click", (e) => { if (e.target === ov) this.closeAchievementsModal(); });
-    ov.querySelector("#btnCloseAch").addEventListener("click", () => this.closeAchievementsModal());
-  }
-
-  openAchievementsModal() {
-    this.createAchievementsModal();
-    this.renderAchievements();
-    document.getElementById("achOverlay")?.classList.add("show");
-  }
-
-  closeAchievementsModal() {
-    document.getElementById("achOverlay")?.classList.remove("show");
-  }
-
-  renderAchievements() {
-    const body = document.getElementById("achBody");
-    if (!body) return;
-
-    if (!this.quiz.user) {
-      body.innerHTML = `<div class="rule"><b>Inicia sesión</b> para ver tus logros.</div>`;
-      return;
-    }
-
-    const u = this.quiz.user.username;
-    const unlocked = this.ach.getUnlocked(u);
-
-    body.innerHTML = (this.achievements || []).map(a => {
-      const is = !!unlocked[a.id];
-      return `
-        <div class="rule">
-          <b>${is ? "✅" : "⬜"} ${a.title}</b><br/>
-          <span class="muted">${a.desc}</span>
-        </div>
-      `;
-    }).join("") || `<div class="rule">Sin logros definidos.</div>`;
-  }
-
-  /* =========================
-     BANK ADMIN
-  ========================= */
-  createBankAdminModal() {
-    if (document.getElementById("bankOverlay")) return;
-
-    const ov = document.createElement("div");
-    ov.id = "bankOverlay";
-    ov.className = "overlay";
-    ov.setAttribute("role", "dialog");
-    ov.setAttribute("aria-modal", "true");
-
-    ov.innerHTML = `
-      <div class="card" style="max-width:920px; width:100%; position:relative;">
-        <button class="btn ghost" id="btnCloseBank" style="position:absolute; right:12px; top:12px;">Cerrar</button>
-        <h2>🛠 Banco de preguntas (Admin)</h2>
-        <p class="muted">Exporta/importa el banco en JSON.</p>
-
-        <div style="display:flex; gap:10px; flex-wrap:wrap; margin:10px 0;">
-          <button class="btn" id="btnExportBank">Exportar JSON</button>
-          <button class="btn" id="btnImportBank">Importar JSON</button>
-          <button class="btn danger" id="btnResetBank">Volver a banco por defecto</button>
-        </div>
-
-        <textarea id="bankTextarea" style="width:100%; min-height:320px; border-radius:12px; padding:12px;"></textarea>
-      </div>
-    `;
-    document.body.appendChild(ov);
-
-    ov.addEventListener("click", (e) => { if (e.target === ov) this.closeBankAdmin(); });
-    ov.querySelector("#btnCloseBank").addEventListener("click", () => this.closeBankAdmin());
-
-    ov.querySelector("#btnExportBank").addEventListener("click", () => {
-      ov.querySelector("#bankTextarea").value = this.bank.exportJSON();
-      this.toast.show("Exportado. Copia y guarda el JSON.");
-    });
-
-    ov.querySelector("#btnImportBank").addEventListener("click", () => {
-      const ta = ov.querySelector("#bankTextarea");
-      const res = this.bank.importJSON(ta.value);
-      this.toast.show(res.msg);
-      if (res.ok && this.quiz.isLoggedIn()) {
-        this.quiz.startLevel(this.quiz.level);
-        this.clearFeedback();
-        this.renderAll();
-      }
-    });
-
-    ov.querySelector("#btnResetBank").addEventListener("click", () => {
-      this.bank.resetToDefault();
-      ov.querySelector("#bankTextarea").value = this.bank.exportJSON();
-      this.toast.show("Banco restaurado.");
-      if (this.quiz.isLoggedIn()) {
-        this.quiz.startLevel(this.quiz.level);
-        this.clearFeedback();
-        this.renderAll();
-      }
-    });
-  }
-
-  openBankAdmin() {
-    const PIN = "1234";
-    const ok = prompt("PIN de Admin del banco (default 1234):");
-    if (ok !== PIN) return this.toast.show("PIN incorrecto.");
-
-    this.createBankAdminModal();
-    const ov = document.getElementById("bankOverlay");
-    if (ov) {
-      ov.classList.add("show");
-      ov.querySelector("#bankTextarea").value = this.bank.exportJSON();
-    }
-  }
-
-  closeBankAdmin() {
-    document.getElementById("bankOverlay")?.classList.remove("show");
   }
 
   /* =========================
@@ -525,8 +355,10 @@ document.querySelector(".topActions")?.prepend(btnAdmin);
     const r = this.auth.tryRestoreSession();
     if (r.ok) {
       this.quiz.loadUser(r.user);
-      // al restaurar, refresca pickers según unlocks
       this.mountAvatarPickers();
+
+      // intenta música si sesión restaurada
+      this.audio.playMusic();
     }
   }
 
@@ -579,9 +411,10 @@ document.querySelector(".topActions")?.prepend(btnAdmin);
     this.quiz.loadUser(res.user);
     this.closeAuth();
 
-    // refrescar pickers con unlocks
-    this.mountAvatarPickers();
+    // 🎵 inicia música al loguear
+    this.audio.playMusic();
 
+    this.mountAvatarPickers();
     this.clearFeedback();
     this.renderAll();
   }
@@ -590,10 +423,10 @@ document.querySelector(".topActions")?.prepend(btnAdmin);
     const res = this.auth.logout();
     this.quiz.logout();
 
-    // reset runtime
-    this.runtime = { streak: 0, lastLevelCompleted: null, livesAtEnd: null, points: 0 };
+    // 🛑 detiene música
+    this.audio.stopMusic();
 
-    // al salir, vuelve a ocultar locked
+    this.runtime = { streak: 0, lastLevelCompleted: null, livesAtEnd: null, points: 0 };
     this.mountAvatarPickers();
 
     this.toast.show(res.msg);
@@ -738,7 +571,6 @@ document.querySelector(".topActions")?.prepend(btnAdmin);
 
     const res = this.quiz.submitAnswer(this.lastQuestion, { index });
 
-    // stats
     if (this.quiz.user) {
       this.stats.recordAnswer({
         username: this.quiz.user.username,
@@ -747,34 +579,34 @@ document.querySelector(".topActions")?.prepend(btnAdmin);
       });
     }
 
-    // racha
     this.runtime.streak = res.correct ? (this.runtime.streak + 1) : 0;
     this.runtime.points = this.quiz.points;
 
-    // bloquear opciones
     const choices = this.el.qBody.querySelectorAll(".choice");
     choices.forEach(btn => btn.disabled = true);
 
     if (res.correct) {
+      this.audio.playSfx("ok");
       this.setFeedback("ok", res.title, res.desc);
       this.el.hudAvatar.classList.remove("sparkle");
       void this.el.hudAvatar.offsetWidth;
       this.el.hudAvatar.classList.add("sparkle");
     } else {
+      this.audio.playSfx("bad");
       this.setFeedback("bad", res.title, res.desc);
       const correctBtn = choices[this.lastQuestion.answerIndex];
       if (correctBtn) correctBtn.classList.add("correct-answer");
     }
 
-    // logros
     if (res.levelCompleted) {
+      this.audio.playSfx("levelup");
       this.runtime.lastLevelCompleted = this.quiz.level;
       this.runtime.livesAtEnd = this.quiz.lives;
     }
     this.checkAchievements();
 
-    // sin vidas
     if (res.endedByLives) {
+      this.audio.playSfx("gameover");
       this.onSessionEnd();
       this.el.btnNext.disabled = true;
       this.el.btnSkip.disabled = true;
@@ -794,7 +626,6 @@ document.querySelector(".topActions")?.prepend(btnAdmin);
 
     const res = this.quiz.submitAnswer(this.lastQuestion, { value });
 
-    // stats
     if (this.quiz.user) {
       this.stats.recordAnswer({
         username: this.quiz.user.username,
@@ -803,34 +634,34 @@ document.querySelector(".topActions")?.prepend(btnAdmin);
       });
     }
 
-    // racha
     this.runtime.streak = res.correct ? (this.runtime.streak + 1) : 0;
     this.runtime.points = this.quiz.points;
 
-    // bloquear input
     const input = document.getElementById("freeInput");
     const btn = this.el.qBody.querySelector("button");
     if (input) input.disabled = true;
     if (btn) btn.disabled = true;
 
     if (res.correct) {
+      this.audio.playSfx("ok");
       this.setFeedback("ok", res.title, res.desc);
       this.el.hudAvatar.classList.remove("sparkle");
       void this.el.hudAvatar.offsetWidth;
       this.el.hudAvatar.classList.add("sparkle");
     } else {
+      this.audio.playSfx("bad");
       this.setFeedback("bad", res.title, res.desc);
     }
 
-    // logros
     if (res.levelCompleted) {
+      this.audio.playSfx("levelup");
       this.runtime.lastLevelCompleted = this.quiz.level;
       this.runtime.livesAtEnd = this.quiz.lives;
     }
     this.checkAchievements();
 
-    // sin vidas
     if (res.endedByLives) {
+      this.audio.playSfx("gameover");
       this.onSessionEnd();
       this.el.btnNext.disabled = true;
       this.el.btnSkip.disabled = true;
@@ -850,7 +681,6 @@ document.querySelector(".topActions")?.prepend(btnAdmin);
 
     const res = this.quiz.skipQuestion(this.lastQuestion);
 
-    // stats: omitir cuenta como incorrecta
     if (this.quiz.user) {
       this.stats.recordAnswer({
         username: this.quiz.user.username,
@@ -862,10 +692,12 @@ document.querySelector(".topActions")?.prepend(btnAdmin);
     this.runtime.streak = 0;
     this.runtime.points = this.quiz.points;
 
+    this.audio.playSfx("bad");
     this.setFeedback("bad", res.title, res.desc);
     this.checkAchievements();
 
     if (res.endedByLives) {
+      this.audio.playSfx("gameover");
       this.onSessionEnd();
       this.el.btnNext.disabled = true;
       this.el.btnSkip.disabled = true;
@@ -914,15 +746,12 @@ document.querySelector(".topActions")?.prepend(btnAdmin);
     });
 
     this.saveUnlocks(this.storage, username, unlocks);
-
-    // si se desbloqueó algo, refresca picker
     this.mountAvatarPickers();
   }
 
   onSessionEnd() {
     if (!this.quiz.user) return;
 
-    // podio
     this.podiumService.savePlayer({
       username: this.quiz.user.username,
       points: this.quiz.points,
@@ -932,7 +761,6 @@ document.querySelector(".topActions")?.prepend(btnAdmin);
       incorrect: this.quiz.incorrectCount
     }, this.quiz.level);
 
-    // stats de sesión
     this.stats.recordSessionEnd({
       username: this.quiz.user.username,
       level: this.quiz.level,
@@ -941,4 +769,291 @@ document.querySelector(".topActions")?.prepend(btnAdmin);
       incorrect: this.quiz.incorrectCount
     });
   }
+
+  /* =========================
+     MODALES (tu código original)
+     NOTA: aquí van tus funciones:
+     createResetModal/openResetModal/closeResetModal/...
+     openStatsModal/createStatsModal/renderStats/...
+     openAchievementsModal/createAchievementsModal/renderAchievements/...
+     createBankAdminModal/openBankAdmin/closeBankAdmin/...
+   ========================= */
+
+  // ⬇️ PEGA AQUÍ tus métodos de modales que ya tenías.
+  // Para no hacer este mensaje infinito, no los reescribo otra vez:
+  // - createResetModal, openResetModal, closeResetModal, handleResetLevel
+  // - createStatsModal, openStatsModal, closeStatsModal, renderStats
+  // - createAchievementsModal, openAchievementsModal, closeAchievementsModal, renderAchievements
+  // - createBankAdminModal, openBankAdmin, closeBankAdmin
+
+  /* =========================
+   RESET MODAL
+========================= */
+  createResetModal() {
+    if (document.getElementById("resetModal")) return;
+
+    const ov = document.createElement("div");
+    ov.id = "resetModal";
+    ov.className = "overlay";
+    ov.setAttribute("role", "dialog");
+    ov.setAttribute("aria-modal", "true");
+    ov.innerHTML = `
+      <div class="card" style="max-width:420px;margin:16px;">
+        <h2>Reiniciar nivel</h2>
+        <p class="muted">Elige qué nivel quieres reiniciar.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
+          <button class="btn" data-level="current">Reiniciar nivel actual</button>
+          <button class="btn" data-level="1">Reiniciar Nivel 1</button>
+          <button class="btn" data-level="2">Reiniciar Nivel 2</button>
+          <button class="btn" data-level="3">Reiniciar Nivel 3</button>
+          <button class="btn ghost" data-level="cancel">Cancelar</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(ov);
+
+    ov.addEventListener("click", (e) => {
+      if (e.target === ov) this.closeResetModal();
+      const btn = e.target.closest("button[data-level]");
+      if (!btn) return;
+
+      const lvl = btn.dataset.level;
+      if (lvl === "cancel") return this.closeResetModal();
+      if (lvl === "current") return this.handleResetLevel();
+
+      const n = Number(lvl);
+      if (Number.isInteger(n)) return this.handleResetLevel(n);
+    });
+  }
+
+  openResetModal() {
+    this.createResetModal();
+    document.getElementById("resetModal")?.classList.add("show");
+  }
+
+  closeResetModal() {
+    document.getElementById("resetModal")?.classList.remove("show");
+  }
+
+  handleResetLevel(level) {
+    this.quiz.resetLevel(level);
+    this.closeResetModal();
+    this.clearFeedback();
+    this.renderAll();
+  }
+
+  /* =========================
+     STATS MODAL
+  ========================= */
+  createStatsModal() {
+    if (document.getElementById("statsOverlay")) return;
+
+    const ov = document.createElement("div");
+    ov.id = "statsOverlay";
+    ov.className = "overlay";
+    ov.setAttribute("role", "dialog");
+    ov.setAttribute("aria-modal", "true");
+    ov.innerHTML = `
+      <div class="card" style="max-width:820px; width:100%; position:relative;">
+        <button class="btn ghost" id="btnCloseStats" style="position:absolute; right:12px; top:12px;">Cerrar</button>
+        <h2>📊 Analíticas</h2>
+        <div id="statsBody" class="rules"></div>
+      </div>
+    `;
+    document.body.appendChild(ov);
+
+    ov.addEventListener("click", (e) => { if (e.target === ov) this.closeStatsModal(); });
+    ov.querySelector("#btnCloseStats")?.addEventListener("click", () => this.closeStatsModal());
+  }
+
+  openStatsModal() {
+    this.createStatsModal();
+    this.renderStats();
+    document.getElementById("statsOverlay")?.classList.add("show");
+  }
+
+  closeStatsModal() {
+    document.getElementById("statsOverlay")?.classList.remove("show");
+  }
+
+  renderStats() {
+    const body = document.getElementById("statsBody");
+    if (!body) return;
+
+    if (!this.quiz.user) {
+      body.innerHTML = `<div class="rule"><b>Inicia sesión</b> para ver tus stats.</div>`;
+      return;
+    }
+
+    const u = this.quiz.user.username;
+    const s = this.stats.getUserStats(u);
+
+    if (!s) {
+      body.innerHTML = `<div class="rule">Aún no hay datos. Juega unas preguntas 🙂</div>`;
+      return;
+    }
+
+    const total = s.totalCorrect + s.totalIncorrect;
+    const pct = total ? Math.round((s.totalCorrect / total) * 100) : 0;
+
+    const byLevelHtml = Object.keys(s.byLevel || {})
+      .sort((a, b) => Number(a) - Number(b))
+      .map(l => {
+        const x = s.byLevel[l];
+        const t = x.correct + x.incorrect;
+        const p = t ? Math.round((x.correct / t) * 100) : 0;
+        return `<div class="rule"><b>Nivel ${l}:</b> ✅ ${x.correct} / ❌ ${x.incorrect} — <b>${p}%</b></div>`;
+      }).join("");
+
+    const last = (s.sessions || []).slice(0, 5).map(ss => {
+      const date = new Date(ss.at);
+      return `<div class="rule"><b>${date.toLocaleString()}</b> — Nivel ${ss.level}, ${ss.points} pts (✅${ss.correct} ❌${ss.incorrect})</div>`;
+    }).join("");
+
+    body.innerHTML = `
+      <div class="rule"><b>Precisión total:</b> ${pct}% (✅ ${s.totalCorrect} / ❌ ${s.totalIncorrect})</div>
+      <div class="divider"></div>
+      <h3 style="margin:0 0 8px;">Por nivel</h3>
+      ${byLevelHtml || `<div class="rule">Sin datos por nivel.</div>`}
+      <div class="divider"></div>
+      <h3 style="margin:0 0 8px;">Últimas sesiones</h3>
+      ${last || `<div class="rule">Aún no hay sesiones registradas.</div>`}
+    `;
+  }
+
+  /* =========================
+     ACHIEVEMENTS MODAL
+  ========================= */
+  createAchievementsModal() {
+    if (document.getElementById("achOverlay")) return;
+
+    const ov = document.createElement("div");
+    ov.id = "achOverlay";
+    ov.className = "overlay";
+    ov.setAttribute("role", "dialog");
+    ov.setAttribute("aria-modal", "true");
+    ov.innerHTML = `
+      <div class="card" style="max-width:820px; width:100%; position:relative;">
+        <button class="btn ghost" id="btnCloseAch" style="position:absolute; right:12px; top:12px;">Cerrar</button>
+        <h2>🏆 Logros</h2>
+        <div id="achBody" class="rules"></div>
+      </div>
+    `;
+    document.body.appendChild(ov);
+
+    ov.addEventListener("click", (e) => { if (e.target === ov) this.closeAchievementsModal(); });
+    ov.querySelector("#btnCloseAch")?.addEventListener("click", () => this.closeAchievementsModal());
+  }
+
+  openAchievementsModal() {
+    this.createAchievementsModal();
+    this.renderAchievements();
+    document.getElementById("achOverlay")?.classList.add("show");
+  }
+
+  closeAchievementsModal() {
+    document.getElementById("achOverlay")?.classList.remove("show");
+  }
+
+  renderAchievements() {
+    const body = document.getElementById("achBody");
+    if (!body) return;
+
+    if (!this.quiz.user) {
+      body.innerHTML = `<div class="rule"><b>Inicia sesión</b> para ver tus logros.</div>`;
+      return;
+    }
+
+    const u = this.quiz.user.username;
+    const unlocked = this.ach.getUnlocked(u);
+
+    body.innerHTML = (this.achievements || []).map(a => {
+      const is = !!unlocked[a.id];
+      return `
+        <div class="rule">
+          <b>${is ? "✅" : "⬜"} ${a.title}</b><br/>
+          <span class="muted">${a.desc}</span>
+        </div>
+      `;
+    }).join("") || `<div class="rule">Sin logros definidos.</div>`;
+  }
+
+  /* =========================
+     BANK ADMIN
+  ========================= */
+  createBankAdminModal() {
+    if (document.getElementById("bankOverlay")) return;
+
+    const ov = document.createElement("div");
+    ov.id = "bankOverlay";
+    ov.className = "overlay";
+    ov.setAttribute("role", "dialog");
+    ov.setAttribute("aria-modal", "true");
+
+    ov.innerHTML = `
+      <div class="card" style="max-width:920px; width:100%; position:relative;">
+        <button class="btn ghost" id="btnCloseBank" style="position:absolute; right:12px; top:12px;">Cerrar</button>
+        <h2>🛠 Banco de preguntas (Admin)</h2>
+        <p class="muted">Exporta/importa el banco en JSON.</p>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin:10px 0;">
+          <button class="btn" id="btnExportBank">Exportar JSON</button>
+          <button class="btn" id="btnImportBank">Importar JSON</button>
+          <button class="btn danger" id="btnResetBank">Volver a banco por defecto</button>
+        </div>
+
+        <textarea id="bankTextarea" style="width:100%; min-height:320px; border-radius:12px; padding:12px;"></textarea>
+      </div>
+    `;
+    document.body.appendChild(ov);
+
+    ov.addEventListener("click", (e) => { if (e.target === ov) this.closeBankAdmin(); });
+    ov.querySelector("#btnCloseBank")?.addEventListener("click", () => this.closeBankAdmin());
+
+    ov.querySelector("#btnExportBank")?.addEventListener("click", () => {
+      ov.querySelector("#bankTextarea").value = this.bank.exportJSON();
+      this.toast.show("Exportado. Copia y guarda el JSON.");
+    });
+
+    ov.querySelector("#btnImportBank")?.addEventListener("click", () => {
+      const ta = ov.querySelector("#bankTextarea");
+      const res = this.bank.importJSON(ta.value);
+      this.toast.show(res.msg);
+      if (res.ok && this.quiz.isLoggedIn()) {
+        this.quiz.startLevel(this.quiz.level);
+        this.clearFeedback();
+        this.renderAll();
+      }
+    });
+
+    ov.querySelector("#btnResetBank")?.addEventListener("click", () => {
+      this.bank.resetToDefault();
+      ov.querySelector("#bankTextarea").value = this.bank.exportJSON();
+      this.toast.show("Banco restaurado.");
+      if (this.quiz.isLoggedIn()) {
+        this.quiz.startLevel(this.quiz.level);
+        this.clearFeedback();
+        this.renderAll();
+      }
+    });
+  }
+
+  openBankAdmin() {
+    const PIN = "1234";
+    const ok = prompt("PIN de Admin del banco (default 1234):");
+    if (ok !== PIN) return this.toast.show("PIN incorrecto.");
+
+    this.createBankAdminModal();
+    const ov = document.getElementById("bankOverlay");
+    if (ov) {
+      ov.classList.add("show");
+      ov.querySelector("#bankTextarea").value = this.bank.exportJSON();
+    }
+  }
+
+  closeBankAdmin() {
+    document.getElementById("bankOverlay")?.classList.remove("show");
+  }
+
+
 }
