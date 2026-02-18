@@ -117,28 +117,24 @@ export class UIController {
       this.openResetModal();
     });
 
-    // quiz nav
     this.el.btnNext?.addEventListener("click", () => this.next());
     this.el.btnSkip?.addEventListener("click", () => this.skip());
 
-    // Botón Stats
     const btnStats = document.createElement("button");
     btnStats.className = "btn ghost";
-    btnStats.textContent = "📊 Stats";
+    btnStats.textContent = "📊 Historial";
     btnStats.addEventListener("click", () => this.openStatsModal());
     document.querySelector(".topActions")?.prepend(btnStats);
 
-    // Botón Logros
     const btnAch = document.createElement("button");
     btnAch.className = "btn ghost";
     btnAch.textContent = "🏆 Logros";
     btnAch.addEventListener("click", () => this.openAchievementsModal());
     document.querySelector(".topActions")?.prepend(btnAch);
 
-    // Botón Admin Banco
     const btnAdmin = document.createElement("button");
     btnAdmin.className = "btn ghost";
-    btnAdmin.textContent = "🛠 Banco";
+    btnAdmin.textContent = "🛠 Banco de preguntas";
     btnAdmin.addEventListener("click", () => this.openBankAdmin());
     document.querySelector(".topActions")?.prepend(btnAdmin);
   }
@@ -154,7 +150,7 @@ export class UIController {
     div.className = "card podium-panel";
     div.innerHTML = `
       <div class="podium-head">
-        <h2 id="podiumTitle">🏆 Podio</h2>
+        <h2 id="podiumTitle">🏆 Resultados Finales</h2>
         <div class="podium-controls">
           <label for="podiumViewSelect" class="small">Ver:</label>
           <select id="podiumViewSelect">
@@ -190,16 +186,16 @@ export class UIController {
     let top = [];
     if (view === "global") {
       top = this.podiumService.getGlobalTop();
-      if (titleEl) titleEl.textContent = `🏆 Podio — Global`;
+      if (titleEl) titleEl.textContent = `🏆 Resultados — Global`;
     } else if (view === "current") {
       const level = this.quiz?.level ?? 1;
       top = this.podiumService.getTopPlayers(level);
-      if (titleEl) titleEl.textContent = `🏆 Podio — Nivel ${level}`;
+      if (titleEl) titleEl.textContent = `🏆 Resultados — Nivel ${level}`;
       if (sel) sel.value = "current";
     } else {
       const lvl = Number(view) || 1;
       top = this.podiumService.getTopPlayers(lvl);
-      if (titleEl) titleEl.textContent = `🏆 Podio — Nivel ${lvl}`;
+      if (titleEl) titleEl.textContent = `🏆 Resultados — Nivel ${lvl}`;
     }
 
     top.forEach((player, index) => {
