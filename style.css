@@ -359,6 +359,12 @@ header{
   justify-content:center;
   padding: 18px;
   z-index: 50;
+  /* 👇 IMPORTANTE */
+  overflow-y: auto;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 18px;
+  z-index: 50;
 }
 .overlay.show{ display:flex; }
 
@@ -367,6 +373,8 @@ header{
   display:grid;
   grid-template-columns: 1.1fr .9fr;
   gap: 14px;
+
+  max-height: 95vh;
 }
 @media (max-width: 900px){ .auth{ grid-template-columns:1fr; } }
 
@@ -580,6 +588,11 @@ header{
   pointer-events: none;
 }
 
+#rulesOverlay .card{
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
 /* Grid: solo 1 columna para la sección de preguntas */
 .grid.singleColumn{
   grid-template-columns: 1fr;
@@ -595,3 +608,513 @@ header{
   display: none;
 }
 
+@media (max-width: 768px){
+
+  .overlay{
+    padding: 20px 14px;
+  }
+
+  .auth{
+    max-height: none;
+  }
+
+  .card{
+    max-height: none;
+  }
+
+}
+
+/* ===============================
+   BOTONES NEÓN BRILLANTES
+================================ */
+
+button,
+.btn,
+.tab {
+  border-radius: 999px !important;
+  padding: 10px 24px;
+  font-weight: 800;
+  border: 2px solid transparent;
+  color: #fff;
+  backdrop-filter: blur(15px);
+  transition: all .3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Brillo base */
+.btn-blue {
+  background: linear-gradient(135deg,#00c6ff,#0072ff);
+  box-shadow: 0 0 15px rgba(0,198,255,.6),
+              0 0 30px rgba(0,114,255,.4);
+}
+
+.btn-pink {
+  background: linear-gradient(135deg,#ff4ecd,#b300ff);
+  box-shadow: 0 0 15px rgba(255,78,205,.6),
+              0 0 30px rgba(179,0,255,.4);
+}
+
+.btn-green {
+  background: linear-gradient(135deg,#2effa8,#00c853);
+  box-shadow: 0 0 15px rgba(46,255,168,.6),
+              0 0 30px rgba(0,200,83,.4);
+}
+
+.btn-red {
+  background: linear-gradient(135deg,#ff6a6a,#d50000);
+  box-shadow: 0 0 15px rgba(255,106,106,.6),
+              0 0 30px rgba(213,0,0,.4);
+}
+
+.btn-gray {
+  background: linear-gradient(135deg,#6b7280,#374151);
+  box-shadow: 0 0 12px rgba(255,255,255,.2);
+}
+
+/* Hover más brillante */
+button:hover {
+  transform: translateY(-3px);
+  filter: brightness(1.15);
+  box-shadow: 0 0 25px rgba(255,255,255,.6),
+              0 0 40px currentColor;
+}
+
+/* Click */
+button:active {
+  transform: scale(.96);
+}
+
+/* Efecto de luz que se mueve */
+button::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    120deg,
+    transparent 30%,
+    rgba(255,255,255,.4),
+    transparent 70%
+  );
+  transform: rotate(25deg);
+  opacity: 0;
+  transition: opacity .3s ease;
+}
+
+button:hover::before {
+  animation: shine 1s ease forwards;
+  opacity: 1;
+}
+
+@keyframes shine {
+  from { transform: translateX(-100%) rotate(25deg); }
+  to { transform: translateX(100%) rotate(25deg); }
+}
+.btn-blue {
+  background: linear-gradient(135deg,#79dcfa,#338bf7);
+  box-shadow: 0 0 15px rgba(0,198,255,.6),
+              0 0 30px rgba(0,114,255,.4);
+}
+
+.btn-purple {
+  background: linear-gradient(135deg,#a855f7,#6d28d9);
+  box-shadow: 0 0 15px rgba(168,85,247,.6),
+              0 0 30px rgba(109,40,217,.4);
+}
+
+.btn-cyan {
+  background: linear-gradient(135deg,#00f5ff,#00bcd4);
+  box-shadow: 0 0 15px rgba(0,245,255,.6),
+              0 0 30px rgba(0,188,212,.4);
+}
+
+/* =========================
+   PODIO — ESTILO PRO + RESPONSIVO
+   (pegar al final del CSS)
+========================= */
+
+.podium-panel{
+  position: sticky;
+  top: 18px;
+  align-self: start;
+  padding: 18px;
+  border-radius: 22px;
+  border: 2px solid rgba(255,255,255,.14);
+  background: linear-gradient(135deg, rgba(0,198,255,.08), rgba(179,0,255,.06));
+  box-shadow: 0 18px 50px rgba(0,0,0,.45);
+}
+
+/* Header */
+.podium-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-bottom: 12px;
+}
+
+#podiumTitle{
+  margin:0;
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: .2px;
+  text-transform: uppercase;
+}
+
+.podium-controls{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+
+.podium-controls label{
+  font-weight: 900;
+  opacity: .85;
+}
+
+/* Select bonito */
+#podiumViewSelect{
+  appearance:none;
+  padding: 10px 42px 10px 14px;
+  border-radius: 999px;
+  border: 2px solid rgba(52,152,219,.45);
+  background: rgba(52,152,219,.14);
+  color: var(--text);
+  font-weight: 800;
+  outline:none;
+  cursor:pointer;
+  box-shadow: 0 10px 24px rgba(0,0,0,.35);
+  backdrop-filter: blur(14px);
+}
+
+/* flechita del select */
+.podium-controls{
+  position: relative;
+}
+.podium-controls::after{
+  content:"▾";
+  position:absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-10%);
+  opacity: .8;
+  pointer-events:none;
+  font-weight: 900;
+}
+
+/* Lista en grid (responsivo) */
+.podium-list{
+  display:grid;
+  gap: 12px;
+  grid-template-columns: 1fr;
+}
+
+/* Item tipo tarjeta */
+.podium-item{
+  border-radius: 18px;
+  padding: 14px;
+  border: 2px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.05);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 12px 34px rgba(0,0,0,.35);
+  transition: transform .15s ease, box-shadow .2s ease, border-color .2s ease;
+  position: relative;
+  overflow:hidden;
+}
+
+/* brillo cruzando (shine) */
+.podium-item::before{
+  content:"";
+  position:absolute;
+  inset:-40%;
+  background: linear-gradient(120deg, transparent 35%, rgba(255,255,255,.22), transparent 65%);
+  transform: translateX(-60%) rotate(18deg);
+  opacity: 0;
+}
+.podium-item:hover::before{
+  animation: podiumShine 1s ease forwards;
+  opacity: 1;
+}
+
+@keyframes podiumShine{
+  from{ transform: translateX(-60%) rotate(18deg); }
+  to{ transform: translateX(60%) rotate(18deg); }
+}
+
+.podium-item:hover{
+  transform: translateY(-2px);
+  border-color: rgba(52,152,219,.45);
+  box-shadow: 0 16px 42px rgba(52,152,219,.18), 0 20px 55px rgba(0,0,0,.45);
+}
+
+/* Título del jugador */
+.podium-item h3{
+  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: .2px;
+}
+
+/* Detalles en 2 columnas para que se vea ordenado */
+.podium-item p{
+  margin: 6px 0;
+  color: rgba(255,255,255,.85);
+  font-weight: 700;
+  display:flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+/* En pantallas grandes, el panel puede ir en 2 columnas */
+@media (min-width: 900px){
+  .podium-list{
+    grid-template-columns: 1fr; /* el panel ya es lateral, 1 col va perfecto */
+  }
+}
+
+/* En móvil: que el podio quede debajo bonito y no sticky */
+@media (max-width: 900px){
+  .podium-panel{
+    position: static;
+  }
+}
+
+/* Extra: resaltar top 3 (solo con CSS, usando :nth-child) */
+.podium-item:nth-child(1){
+  border-color: rgba(255,215,0,.45);
+  box-shadow: 0 18px 48px rgba(255,215,0,.12), 0 18px 50px rgba(0,0,0,.45);
+}
+.podium-item:nth-child(2){
+  border-color: rgba(192,192,192,.40);
+}
+.podium-item:nth-child(3){
+  border-color: rgba(205,127,50,.40);
+}
+/* =========================
+   PODIO — ESTILO PRO + RESPONSIVO
+   (pegar al final del CSS)
+========================= */
+
+.podium-panel{
+  position: sticky;
+  top: 18px;
+  align-self: start;
+  padding: 18px;
+  border-radius: 22px;
+  border: 2px solid rgba(255,255,255,.14);
+  background: linear-gradient(135deg, rgba(0,198,255,.08), rgba(179,0,255,.06));
+  box-shadow: 0 18px 50px rgba(0,0,0,.45);
+}
+
+/* Header */
+.podium-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-bottom: 12px;
+}
+
+#podiumTitle{
+  margin:0;
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: .2px;
+  text-transform: uppercase;
+}
+
+.podium-controls{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+
+.podium-controls label{
+  font-weight: 900;
+  opacity: .85;
+}
+
+/* Select bonito */
+#podiumViewSelect{
+  appearance:none;
+  padding: 10px 42px 10px 14px;
+  border-radius: 999px;
+  border: 2px solid rgba(52,152,219,.45);
+  background: rgba(52,152,219,.14);
+  color: var(--text);
+  font-weight: 800;
+  outline:none;
+  cursor:pointer;
+  box-shadow: 0 10px 24px rgba(0,0,0,.35);
+  backdrop-filter: blur(14px);
+}
+
+/* flechita del select */
+.podium-controls{
+  position: relative;
+}
+.podium-controls::after{
+  content:"▾";
+  position:absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-10%);
+  opacity: .8;
+  pointer-events:none;
+  font-weight: 900;
+}
+
+/* Lista en grid (responsivo) */
+.podium-list{
+  display:grid;
+  gap: 12px;
+  grid-template-columns: 1fr;
+}
+
+/* Item tipo tarjeta */
+.podium-item{
+  border-radius: 18px;
+  padding: 14px;
+  border: 2px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.05);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 12px 34px rgba(0,0,0,.35);
+  transition: transform .15s ease, box-shadow .2s ease, border-color .2s ease;
+  position: relative;
+  overflow:hidden;
+}
+
+/* brillo cruzando (shine) */
+.podium-item::before{
+  content:"";
+  position:absolute;
+  inset:-40%;
+  background: linear-gradient(120deg, transparent 35%, rgba(255,255,255,.22), transparent 65%);
+  transform: translateX(-60%) rotate(18deg);
+  opacity: 0;
+}
+.podium-item:hover::before{
+  animation: podiumShine 1s ease forwards;
+  opacity: 1;
+}
+
+@keyframes podiumShine{
+  from{ transform: translateX(-60%) rotate(18deg); }
+  to{ transform: translateX(60%) rotate(18deg); }
+}
+
+.podium-item:hover{
+  transform: translateY(-2px);
+  border-color: rgba(52,152,219,.45);
+  box-shadow: 0 16px 42px rgba(52,152,219,.18), 0 20px 55px rgba(0,0,0,.45);
+}
+
+/* Título del jugador */
+.podium-item h3{
+  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: .2px;
+}
+
+/* Detalles en 2 columnas para que se vea ordenado */
+.podium-item p{
+  margin: 6px 0;
+  color: rgba(255,255,255,.85);
+  font-weight: 700;
+  display:flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+/* En pantallas grandes, el panel puede ir en 2 columnas */
+@media (min-width: 900px){
+  .podium-list{
+    grid-template-columns: 1fr; /* el panel ya es lateral, 1 col va perfecto */
+  }
+}
+
+/* En móvil: que el podio quede debajo bonito y no sticky */
+@media (max-width: 900px){
+  .podium-panel{
+    position: static;
+  }
+}
+
+/* Extra: resaltar top 3 (solo con CSS, usando :nth-child) */
+.podium-item:nth-child(1){
+  border-color: rgba(255,215,0,.45);
+  box-shadow: 0 18px 48px rgba(255,215,0,.12), 0 18px 50px rgba(0,0,0,.45);
+}
+.podium-item:nth-child(2){
+  border-color: rgba(192,192,192,.40);
+}
+.podium-item:nth-child(3){
+  border-color: rgba(205,127,50,.40);
+}
+/* =========================
+   SELECT PODIO: dropdown oscuro + neon
+========================= */
+
+/* Hace que los controles nativos usen esquema oscuro (ayuda mucho) */
+html { color-scheme: dark; }
+
+/* Select principal */
+#podiumViewSelect{
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  background: rgba(0, 198, 255, .14);
+  border: 2px solid rgba(0, 198, 255, .45);
+  color: #fff;
+
+  border-radius: 999px;
+  padding: 10px 44px 10px 14px;
+  font-weight: 900;
+
+  box-shadow: 0 0 14px rgba(0,198,255,.45),
+              0 0 28px rgba(179,0,255,.18);
+}
+
+/* Cuando está enfocado */
+#podiumViewSelect:focus{
+  outline: none;
+  box-shadow: 0 0 0 6px rgba(0,198,255,.20),
+              0 0 18px rgba(0,198,255,.55);
+}
+
+/* Opciones del dropdown (lo que se ve feo en tu captura) */
+#podiumViewSelect option{
+  background: #0b1024;   /* fondo oscuro */
+  color: #ffffff;        /* texto blanco */
+  font-weight: 800;
+}
+
+/* Hover/selected (no todos los navegadores lo respetan, pero ayuda) */
+#podiumViewSelect option:checked{
+  background: #13204a;
+  color: #ffffff;
+}
+
+/* Si usas el ::after de flecha, asegúrate que no se vea “doble” */
+.podium-controls::after{
+  content:"▾";
+  position:absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: .9;
+  pointer-events:none;
+  font-weight: 900;
+  color: rgba(255,255,255,.9);
+}

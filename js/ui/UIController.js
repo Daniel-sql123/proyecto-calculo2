@@ -132,23 +132,16 @@ export class UIController {
     this.el.btnSkip?.addEventListener("click", () => this.skip());
 
     const btnStats = document.createElement("button");
-    btnStats.className = "btn ghost";
-    btnStats.textContent = "📊 Historial";
+    btnStats.className = "btn btn-cyan";
+    btnStats.textContent = "Historial";
     btnStats.addEventListener("click", () => this.openStatsModal());
     document.querySelector(".topActions")?.prepend(btnStats);
 
     const btnAch = document.createElement("button");
-    btnAch.className = "btn ghost";
-    btnAch.textContent = "🏆 Logros";
+    btnAch.className = "btn btn-purple";
+    btnAch.textContent = "Logros";
     btnAch.addEventListener("click", () => this.openAchievementsModal());
     document.querySelector(".topActions")?.prepend(btnAch);
-
-    const btnAdmin = document.createElement("button");
-    btnAdmin.className = "btn ghost";
-    btnAdmin.textContent = "🛠 Banco de preguntas";
-    btnAdmin.addEventListener("click", () => this.openBankAdmin());
-    document.querySelector(".topActions")?.prepend(btnAdmin);
-
 
     document.addEventListener("click", () => this.audio.unlock(), { once: true });
 
@@ -162,6 +155,12 @@ export class UIController {
     });
     document.querySelector(".topActions")?.prepend(btnAudio);
 
+
+    const btnAdmin = document.createElement("button");
+    btnAdmin.className = "btn btn-blue";
+    btnAdmin.textContent = "Banco de preguntas";
+    btnAdmin.addEventListener("click", () => this.openBankAdmin());
+    document.querySelector(".topActions")?.prepend(btnAdmin);
 
   }
 
