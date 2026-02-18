@@ -1,29 +1,49 @@
 export class AvatarService {
   constructor({ skins, outfits = [], colors }) {
     this.skins = skins;        // personajes base
-    this.outfits = outfits;    // 👈 ropa
+    this.outfits = outfits;    // ropa
     this.colors = colors;
 
     this.selectedSkin = skins?.[0]?.id ?? "wizard";
-    this.selectedOutfit = outfits?.[0]?.id ?? "none";   // 👈 NUEVO
+    this.selectedOutfit = outfits?.[0]?.id ?? "none";
     this.selectedColor = colors?.[0] ?? "#1E85CA";
   }
 
   setSkin(id) { this.selectedSkin = id; }
-  setOutfit(id) { this.selectedOutfit = id; }   // 👈 NUEVO
+  setOutfit(id) { this.selectedOutfit = id; }
   setColor(color) { this.selectedColor = color; }
 
-  getSkinById(id){
+  getSkinById(id) {
     return this.skins.find(s => s.id === id) || this.skins[0];
   }
 
-  getOutfitById(id){
-    if(!this.outfits?.length) return null;
+  getOutfitById(id) {
+    if (!this.outfits?.length) return null;
     return this.outfits.find(o => o.id === id) || this.outfits[0];
   }
 
-  renderAvatar(el, { skinId, outfitId, color, initial } = {}) {
+  // ✅ Normaliza/centra un SVG (skin o outfit) dentro de su contenedor
+  fitSvg(svg) {
+    if (!svg) return "";
 
+    // Si ya trae preserveAspectRatio, lo dejamos y solo forzamos style.
+    // Si no, lo agregamos.
+    const hasPreserve = svg.includes("preserveAspectRatio=");
+
+    let out = svg.replace(
+      "<svg",
+      `<svg ${hasPreserve ? "" : `preserveAspectRatio="xMidYMid meet"`} style="width:100%;height:100%;display:block;"`
+    );
+
+    // Extra: por si algún SVG trae width/height fijos que molestan, los quitamos suavemente
+    out = out
+      .replace(/\swidth="[^"]*"/i, "")
+      .replace(/\sheight="[^"]*"/i, "");
+
+    return out;
+  }
+
+  renderAvatar(el, { skinId, outfitId, color, initial } = {}) {
     const finalSkinId = skinId || this.selectedSkin;
     const finalOutfitId = outfitId || this.selectedOutfit;
 
@@ -32,6 +52,10 @@ export class AvatarService {
 
     const init = (initial || "").toUpperCase();
     const c = color || this.selectedColor;
+
+    // (Opcional) asegura tamaño si el elemento no tuviera clase .avatar
+    // el.style.width = el.style.width || "34px";
+    // el.style.height = el.style.height || "34px";
 
     el.style.position = "relative";
     el.style.overflow = "hidden";
@@ -55,23 +79,36 @@ export class AvatarService {
 
       <div style="display:grid; place-items:center; width:100%; height:100%;">
         
-        <!-- 👇 AQUÍ se combinan las capas -->
-        <div style="position:relative; width:38px; height:38px;">
-          
-          <!-- PERSONAJE BASE -->
-          <div style="position:absolute; inset:0;">
-            ${skin?.svg || ""}
+        <!-- CONTENEDOR DE CAPAS (IGUAL PARA SKIN Y ROPA) -->
+        <div style="
+          position:relative;
+          width:34px;
+          height:34px;
+          display:grid;
+          place-items:center;
+        ">
+
+          <!-- SKIN -->
+          <div style="
+            position:absolute; inset:0;
+            display:flex; align-items:center; justify-content:center;
+          ">
+            ${this.fitSvg(skin?.svg)}
           </div>
 
-          <!-- ROPA -->
-          ${outfit?.svg ? `
-            <div style="position:absolute; inset:0;">
-              ${outfit.svg}
+          <!-- OUTFIT (MISMO CENTRADO) -->
+          ${outfit?.svg && outfitId !== "none" ? `
+            <div style="
+              position:absolute; inset:0;
+              display:flex; align-items:center; justify-content:center;
+            ">
+              ${this.fitSvg(outfit.svg)}
             </div>
           ` : ""}
 
         </div>
 
+        <!-- INICIAL -->
         <div aria-hidden="true" style="
           margin-top:4px;
           font-size:11px;
@@ -90,14 +127,21 @@ export class AvatarService {
   }
 
   mountPickers({ faceContainer, outfitContainer, colorContainer, onChange }) {
-
     /* ===== SKINS ===== */
     faceContainer.innerHTML = "";
     this.skins.forEach((s) => {
       const b = document.createElement("button");
       b.type = "button";
       b.className = "faceBtn" + (s.id === this.selectedSkin ? " active" : "");
-      b.innerHTML = `<div style="width:26px;height:26px">${s.svg}</div>`;
+
+      // ✅ miniatura centrada también
+      b.innerHTML = `
+        <div style="position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  transform: translateX(-50px);;">
+          ${this.fitSvg(s.svg)}
+        </div>
+      `;
       b.title = s.name;
 
       b.addEventListener("click", () => {
@@ -111,14 +155,22 @@ export class AvatarService {
       faceContainer.appendChild(b);
     });
 
-    /* ===== ROPA ===== */
-    if(outfitContainer){
+    /* ===== OUTFITS ===== */
+    if (outfitContainer) {
       outfitContainer.innerHTML = "";
       this.outfits.forEach((o) => {
         const b = document.createElement("button");
         b.type = "button";
         b.className = "faceBtn" + (o.id === this.selectedOutfit ? " active" : "");
-        b.innerHTML = `<div style="width:26px;height:26px">${o.svg || ""}</div>`;
+
+        // ✅ miniatura ropa centrada
+        b.innerHTML = `
+          <div style=" position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  transform: translateX(-1px);">
+            ${this.fitSvg(o.svg || "")}
+          </div>
+        `;
         b.title = o.name;
 
         b.addEventListener("click", () => {
