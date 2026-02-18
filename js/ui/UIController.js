@@ -1,5 +1,4 @@
 import { PodiumService } from "../podium/PodiumService.js";
-import { AudioService } from "../audio/AudioService.js";
 
 export class UIController {
   constructor({
@@ -12,15 +11,6 @@ export class UIController {
     this.quiz = quiz;
     this.avatarService = avatarService;
     this.podiumService = new PodiumService();
-    this.audio = new AudioService({
-      musicSrc: "/audio/music.mp3",
-      sfx: {
-        click: "/audio/click.mp3",
-        ok: "/audio/correct.mp3",
-        bad: "/audio/wrong.mp3",
-        levelup: "/audio/levelup.mp3",
-      }
-    });
 
     // ✅ nuevos servicios / helpers
     this.bank = bank;
@@ -113,7 +103,6 @@ export class UIController {
     this.el.btnCloseAuth1?.addEventListener("click", () => this.closeAuth());
     this.el.btnCloseAuth2?.addEventListener("click", () => this.closeAuth());
 
-
     // tabs
     this.el.tabLogin?.addEventListener("click", () => this.switchTab("login"));
     this.el.tabRegister?.addEventListener("click", () => this.switchTab("register"));
@@ -143,24 +132,11 @@ export class UIController {
     btnAch.addEventListener("click", () => this.openAchievementsModal());
     document.querySelector(".topActions")?.prepend(btnAch);
 
-    document.addEventListener("click", () => this.audio.unlock(), { once: true });
-
-
-    const btnAudio = document.createElement("button");
-    btnAudio.className = "btn ghost";
-    btnAudio.textContent = "🔊 Audio";
-    btnAudio.addEventListener("click", () => {
-      const on = this.audio.toggleMute();
-      btnAudio.textContent = on ? "🔊 Audio" : "🔇 Mute";
-    });
-    document.querySelector(".topActions")?.prepend(btnAudio);
-
-
-    const btnAdmin = document.createElement("button");
-    btnAdmin.className = "btn btn-blue";
-    btnAdmin.textContent = "Banco de preguntas";
-    btnAdmin.addEventListener("click", () => this.openBankAdmin());
-    document.querySelector(".topActions")?.prepend(btnAdmin);
+const btnAdmin = document.createElement("button");
+btnAdmin.className = "btn btn-blue";
+btnAdmin.textContent = "Banco de preguntas";
+btnAdmin.addEventListener("click", () => this.openBankAdmin());
+document.querySelector(".topActions")?.prepend(btnAdmin);
 
   }
 
@@ -268,7 +244,7 @@ export class UIController {
       faceContainer: this.el.facePicker,
       outfitContainer: this.el.outfitPicker,
       colorContainer: this.el.colorPicker,
-      onChange: () => { }
+      onChange: () => {}
     });
 
     this.avatarService.outfits = original;
@@ -588,8 +564,6 @@ export class UIController {
       this.el.regUser.value = "";
       this.el.regPass.value = "";
       this.el.regInitial.value = "";
-
-      this.audio.playMusic();
     }
   }
 
@@ -625,9 +599,6 @@ export class UIController {
     this.toast.show(res.msg);
     this.clearFeedback();
     this.renderAll();
-
-    this.audio.stopMusic();
-
   }
 
   /* =========================
@@ -774,9 +745,6 @@ export class UIController {
         level: this.quiz.level,
         correct: res.correct
       });
-
-      this.audio.playSfx("ok");
-      this.audio.playSfx("bad");
     }
 
     // racha
