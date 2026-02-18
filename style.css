@@ -359,6 +359,12 @@ header{
   justify-content:center;
   padding: 18px;
   z-index: 50;
+  /* 👇 IMPORTANTE */
+  overflow-y: auto;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 18px;
+  z-index: 50;
 }
 .overlay.show{ display:flex; }
 
@@ -367,6 +373,8 @@ header{
   display:grid;
   grid-template-columns: 1.1fr .9fr;
   gap: 14px;
+
+  max-height: 95vh;
 }
 @media (max-width: 900px){ .auth{ grid-template-columns:1fr; } }
 
@@ -580,6 +588,11 @@ header{
   pointer-events: none;
 }
 
+#rulesOverlay .card{
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
 /* Grid: solo 1 columna para la sección de preguntas */
 .grid.singleColumn{
   grid-template-columns: 1fr;
@@ -595,3 +608,18 @@ header{
   display: none;
 }
 
+@media (max-width: 768px){
+
+  .overlay{
+    padding: 20px 14px;
+  }
+
+  .auth{
+    max-height: none;
+  }
+
+  .card{
+    max-height: none;
+  }
+
+}
