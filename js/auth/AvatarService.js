@@ -136,9 +136,7 @@ export class AvatarService {
 
       // ✅ miniatura centrada también
       b.innerHTML = `
-        <div style="position:absolute; inset:0;
-  display:flex; align-items:center; justify-content:center;
-  transform: translateX(-50px);;">
+        <div style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;">
           ${this.fitSvg(s.svg)}
         </div>
       `;
@@ -165,9 +163,7 @@ export class AvatarService {
 
         // ✅ miniatura ropa centrada
         b.innerHTML = `
-          <div style=" position:absolute; inset:0;
-  display:flex; align-items:center; justify-content:center;
-  transform: translateX(-1px);">
+          <div style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;">
             ${this.fitSvg(o.svg || "")}
           </div>
         `;
