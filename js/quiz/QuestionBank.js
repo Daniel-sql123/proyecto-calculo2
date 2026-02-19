@@ -11,7 +11,7 @@ function normalize(s) {
 export class QuestionBank {
   constructor() {
     this.questions = [
-     // Nivel 1 — Fácil
+      // Nivel 1 — Fácil
       {
         level: 1,
         type: "input",
@@ -22,8 +22,7 @@ export class QuestionBank {
         explainBad: "Recuerda aumentar el exponente en 1 y dividir por ese nuevo exponente.",
         validate: (raw) => {
           const a = normalize(raw);
-          const opts = ["7x4/4+c","(7/4)x4+c","7/4x4+c","7x4/4"];
-          // accept common normalized forms
+          const opts = ["7x4/4+c", "(7/4)x4+c", "7/4x4+c", "7x4/4"];
           return opts.some(o => a.includes("7") && (a.includes("x4") || a.includes("x^4")));
         }
       },
@@ -38,8 +37,18 @@ export class QuestionBank {
         explainBad: "La derivada de e^x es e^x, por eso su integral es e^x + C.",
         validate: (raw) => {
           const a = normalize(raw);
-          return ["ex+c","ex","e^x+c","e^x"].some(v => a.includes(v.replace("^","")));
+          return ["ex+c", "ex", "e^x+c", "e^x"].some(v => a.includes(v.replace("^", "")));
         }
+      },
+
+      {
+        level: 1,
+        type: "input",
+        prompt: "∫ √x dx",
+        answers: ["2/3 x^(3/2) + C", "x^(3/2) + C", "x^2/2 + C", "x^(1/2) + C"],
+        points: 10,
+        explainOk: "√x = x^(1/2), luego ∫x^(1/2) dx = 2/3 x^(3/2) + C.",
+        explainBad: "Recuerda que la raíz cuadrada es x^(1/2) y se aplica la regla de potencia.",
       },
 
       {
@@ -63,6 +72,20 @@ export class QuestionBank {
         points: 15,
         explainOk: "Con u = x^2, du = 2x dx → ∫cos(u) du = sin(u) + C.",
         explainBad: "Usa sustitución u = x^2 para simplificar la integral."
+      },
+
+      {
+        level: 2,
+        type: "input",
+        prompt: "∫ 1/(2x - 1) dx",
+        answers: ["(1/2) ln|2x - 1| + C", "(1/2) ln|u| + C", "(1/2) ln|2x - 1|"],
+        points: 15,
+        explainOk: "Con u = 2x - 1, du = 2 dx → ∫1/u du = ln|u| + C.",
+        explainBad: "Recuerda dividir por 2 cuando realices la sustitución.",
+        validate: (raw) => {
+          const a = normalize(raw);
+          return a.includes("1/2") && a.includes("ln");
+        }
       },
 
       {
@@ -124,11 +147,26 @@ export class QuestionBank {
           const a = normalize(raw);
           return a.includes("arcsin") && (a.includes("x/3") || a.includes("x3"));
         }
+      },
+
+      {
+        level: 3,
+        type: "input",
+        prompt: "∫ x sin(x) dx",
+        answers: ["−x cos(x) + sin(x) + C", "x cos(x) + C", "−x cos(x) + C", "sin(x) + C"],
+        points: 20,
+        explainOk: "Por partes con u=x y dv=sin x dx produce −x cos x + sin x + C.",
+        explainBad: "No olvides el signo al integrar sin(x).",
+        validate: (raw) => {
+          const a = normalize(raw);
+          return a.includes("-x") && a.includes("cos(x)") && a.includes("sin(x)");
+        }
       }
+
     ];
   }
 
-  getByLevel(level){
+  getByLevel(level) {
     return this.questions.filter(q => q.level === level);
   }
 }
