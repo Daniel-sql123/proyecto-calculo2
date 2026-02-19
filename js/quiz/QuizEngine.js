@@ -87,18 +87,18 @@ export class QuizEngine {
     if (!this.user) return;
 
     if (level && level !== this.level) {
-      // remove answered prompts that belong to the specified level
+      // Remove answered prompts only for the specified level
       const lvlQs = this.bank.getByLevel(level) || [];
       for (const q of lvlQs) {
-        this.answeredPrompts.delete(q.prompt);
+        this.answeredPrompts.delete(q.prompt); // Remove only the answered prompts for the selected level
       }
       this.toast.show(`Nivel ${level} reiniciado.`);
       this.persistProgress();
       return;
     }
 
-    // default: reset the current level (original behavior)
-    this.startLevel(this.level);
+    // Default: reset the current level
+    this.startLevel(this.level); // Keep questions for the level intact
     this.toast.show("Nivel reiniciado. ¡A practicar!");
   }
 
@@ -155,9 +155,9 @@ export class QuizEngine {
   skipQuestion(question) {
     this.lives = Math.max(0, this.lives - 1);
 
-    this.incorrectCount++;    
-    this.persistProgress(); 
-       
+    this.incorrectCount++;
+    this.persistProgress();
+
     if (this.lives === 0) {
       return { endedByLives: true, title: "Omitiste y te quedaste sin vidas", desc: "Reinicia el nivel y revisa explicaciones." };
     }

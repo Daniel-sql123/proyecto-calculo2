@@ -11,52 +11,64 @@ function normalize(s) {
 export class QuestionBank {
   constructor() {
     this.questions = [
-      // Nivel 1 — Fácil
+      // Nivel 1 — Fácil (Convertidas a selección única)
       {
         level: 1,
-        type: "input",
+        type: "mcq",
         prompt: "∫ 7x^3 dx",
-        answers: ["7x^4/4 + C", "(7/4)x^4 + C", "7/4 x^4 + C", "7x^4/4"],
+        choices: [
+          "7x^4/4 + C",
+          "(7/4)x^4 + C",
+          "7/4 x^4 + C",
+          "7x^4/4"
+        ],
+        answerIndex: 0, // La respuesta correcta es la primera opción
         points: 10,
         explainOk: "Aplicando la regla de potencia: ∫x^n dx = x^(n+1)/(n+1) + C.",
-        explainBad: "Recuerda aumentar el exponente en 1 y dividir por ese nuevo exponente.",
-        validate: (raw) => {
-          const a = normalize(raw);
-          const opts = ["7x4/4+c", "(7/4)x4+c", "7/4x4+c", "7x4/4"];
-          return opts.some(o => a.includes("7") && (a.includes("x4") || a.includes("x^4")));
-        }
+        explainBad: "Recuerda aumentar el exponente en 1 y dividir por ese nuevo exponente."
       },
 
       {
         level: 1,
-        type: "input",
+        type: "mcq",
         prompt: "∫ e^x dx",
-        answers: ["e^x + C", "e^x"],
+        choices: [
+          "e^x + C",
+          "e^x"
+        ],
+        answerIndex: 0, // La respuesta correcta es la primera opción
         points: 10,
         explainOk: "La integral de e^x es e^x + C.",
-        explainBad: "La derivada de e^x es e^x, por eso su integral es e^x + C.",
-        validate: (raw) => {
-          const a = normalize(raw);
-          return ["ex+c", "ex", "e^x+c", "e^x"].some(v => a.includes(v.replace("^", "")));
-        }
+        explainBad: "La derivada de e^x es e^x, por eso su integral es e^x + C."
       },
 
       {
         level: 1,
-        type: "input",
+        type: "mcq",
         prompt: "∫ √x dx",
-        answers: ["2/3 x^(3/2) + C", "x^(3/2) + C", "x^2/2 + C", "x^(1/2) + C"],
+        choices: [
+          "2/3 x^(3/2) + C",
+          "x^(3/2) + C",
+          "x^2/2 + C",
+          "x^(1/2) + C"
+        ],
+        answerIndex: 0, // La respuesta correcta es la primera opción
         points: 10,
         explainOk: "√x = x^(1/2), luego ∫x^(1/2) dx = 2/3 x^(3/2) + C.",
-        explainBad: "Recuerda que la raíz cuadrada es x^(1/2) y se aplica la regla de potencia.",
+        explainBad: "Recuerda que la raíz cuadrada es x^(1/2) y se aplica la regla de potencia."
       },
 
       {
         level: 1,
         type: "mcq",
         prompt: "∫ 1/x dx",
-        choices: ["ln|x| + C", "1/(x^2) + C", "x + C", "e^x + C"],
-        answerIndex: 0,
+        choices: [
+          "ln|x| + C",
+          "1/(x^2) + C",
+          "x + C",
+          "e^x + C"
+        ],
+        answerIndex: 0, // La respuesta correcta es la primera opción
         points: 10,
         explainOk: "∫1/x dx = ln|x| + C.",
         explainBad: "Esta es la integral logarítmica básica: ln|x| + C."
@@ -67,8 +79,13 @@ export class QuestionBank {
         level: 2,
         type: "mcq",
         prompt: "∫ 2x cos(x^2) dx",
-        choices: ["sin(x^2) + C", "cos(x^2) + C", "2 sin(x^2) + C", "x sin(x^2) + C"],
-        answerIndex: 0,
+        choices: [
+          "sin(x^2) + C",
+          "cos(x^2) + C",
+          "2 sin(x^2) + C",
+          "x sin(x^2) + C"
+        ],
+        answerIndex: 0, // La respuesta correcta es la primera opción
         points: 15,
         explainOk: "Con u = x^2, du = 2x dx → ∫cos(u) du = sin(u) + C.",
         explainBad: "Usa sustitución u = x^2 para simplificar la integral."
@@ -106,8 +123,13 @@ export class QuestionBank {
         level: 2,
         type: "mcq",
         prompt: "Si u = x^2 + 1, ¿cuál es du/dx?",
-        choices: ["2x", "x", "1", "2"],
-        answerIndex: 0,
+        choices: [
+          "2x",
+          "x",
+          "1",
+          "2"
+        ],
+        answerIndex: 0, // La respuesta correcta es la primera opción
         points: 10,
         explainOk: "Derivando u = x^2 + 1 se obtiene du/dx = 2x.",
         explainBad: "Aplícale la regla de potencia al término x^2."
@@ -116,20 +138,15 @@ export class QuestionBank {
       // Nivel 3 — Difícil (Por partes, trigonométricas, raíces)
       {
         level: 3,
-        type: "input",
-        prompt: "∫ x e^x dx",
-        answers: ["e^x(x-1) + C", "e^x(x - 1) + C", "e^x*x - e^x + C"],
-        points: 20,
-        explainOk: "Por partes: u=x, dv=e^x dx → ∫x e^x dx = e^x(x-1)+C.",
-        explainBad: "Aplica la fórmula ∫u dv = uv − ∫v du."
-      },
-
-      {
-        level: 3,
         type: "mcq",
         prompt: "∫ x sin(x) dx",
-        choices: ["−x cos(x) + sin(x) + C", "x cos(x) + C", "cos(x) + C", "sin(x) + C"],
-        answerIndex: 0,
+        choices: [
+          "−x cos(x) + sin(x) + C",
+          "x cos(x) + C",
+          "cos(x) + C",
+          "sin(x) + C"
+        ],
+        answerIndex: 0, // La respuesta correcta es la primera opción
         points: 20,
         explainOk: "Por partes con u=x y dv=sin x dx produce −x cos x + sin x + C.",
         explainBad: "No olvides el signo al integrar sin(x)."
@@ -137,36 +154,41 @@ export class QuestionBank {
 
       {
         level: 3,
-        type: "input",
+        type: "mcq",
         prompt: "∫ dx / sqrt(9 - x^2)",
-        answers: ["arcsin(x/3) + C", "arcsen(x/3) + C", "arcsin(x/3)"],
+        choices: [
+          "arcsin(x/3) + C",
+          "arcsen(x/3) + C",
+          "arcsin(x/3)"
+        ],
+        answerIndex: 0, // La respuesta correcta es la primera opción
         points: 20,
         explainOk: "Fórmula estándar: ∫ dx / sqrt(a^2 - x^2) = arcsin(x/a) + C, con a=3.",
-        explainBad: "Reconoce la forma a^2 - x^2 y usa arcsin(x/a).",
-        validate: (raw) => {
-          const a = normalize(raw);
-          return a.includes("arcsin") && (a.includes("x/3") || a.includes("x3"));
-        }
+        explainBad: "Reconoce la forma a^2 - x^2 y usa arcsin(x/a)."
       },
 
       {
-        level: 3,
-        type: "input",
-        prompt: "∫ x sin(x) dx",
-        answers: ["−x cos(x) + sin(x) + C", "x cos(x) + C", "−x cos(x) + C", "sin(x) + C"],
-        points: 20,
-        explainOk: "Por partes con u=x y dv=sin x dx produce −x cos x + sin x + C.",
-        explainBad: "No olvides el signo al integrar sin(x).",
-        validate: (raw) => {
-          const a = normalize(raw);
-          return a.includes("-x") && a.includes("cos(x)") && a.includes("sin(x)");
-        }
+        level: 3, diff: "Difícil", type: "mcq", points: 20,
+        prompt: "11) ∫ √(9−x²) dx =",
+        choices: ["arcsen(x/3) + C", "arcsen(x) + C", "−(1/3)cos(3x) + C", "cos(3x) + C"],
+        answerIndex: 0,
+        explainOk: "Fórmula estándar: ∫ dx / √(a² − x²) = arcsen(x/a) + C. Aquí a = 3, entonces el resultado es arcsen(x/3) + C.",
+        explainBad: "Error común: no reconocer que es una integral estándar de arco seno."
+      },
+      {
+        level: 3, diff: "Difícil", type: "mcq", points: 20,
+        prompt: "12) ∫ x sin(x) dx (Por partes)",
+        choices: ["u = x, dv = sin(x) dx", "u = sin(x), dv = x dx", "u = x·sin(x), dv = dx", "No se puede por partes"],
+        answerIndex: 0,
+        explainOk: "Correcto: por LIATE, u = x (algebraica) y dv = sin(x)dx. Al derivar u se simplifica la expresión.",
+        explainBad: "Pista: elige u para que al derivar se obtenga algo simple como una constante."
       }
-
     ];
   }
 
   getByLevel(level) {
-    return this.questions.filter(q => q.level === level);
+    return this.questions.filter(q => q.level === level); // Filtra las preguntas por el nivel
   }
 }
+
+
