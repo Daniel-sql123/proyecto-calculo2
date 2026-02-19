@@ -1,123 +1,130 @@
-function normalize(s){
+function normalize(s) {
   return (s || "")
     .toString()
     .trim()
     .toLowerCase()
     .replaceAll(" ", "")
-    .replaceAll("á","a").replaceAll("é","e").replaceAll("í","i").replaceAll("ó","o").replaceAll("ú","u")
-    .replaceAll("ñ","n");
+    .replaceAll("á", "a").replaceAll("é", "e").replaceAll("í", "i").replaceAll("ó", "o").replaceAll("ú", "u")
+    .replaceAll("ñ", "n");
 }
 
 export class QuestionBank {
-  constructor(){
+  constructor() {
     this.questions = [
-      // NIVEL 1 — FÁCIL (4)
+     // Nivel 1 — Fácil
       {
-        level: 1, diff:"Fácil", type:"mcq", points:10,
-        prompt:"1) Calcula ∫ x² dx",
-        choices:["x³ + C","x³/3 + C","2x + C","x²/2 + C"],
-        answerIndex:1,
-        explainOk:"Correcto: ∫xⁿ dx = xⁿ⁺¹/(n+1) + C. Con n=2: x³/3 + C.",
-        explainBad:"Error típico: olvidar dividir entre (n+1). Aquí (2+1)=3, por eso x³/3 + C."
-      },
-      {
-        level: 1, diff:"Fácil", type:"input", points:10,
-        prompt:"2) Completa: ∫ cos(x) dx = ________ + C",
-        placeholder:"Ej: sen(x)",
-        validate:(raw)=> {
-          const n = normalize(raw);
-          return n === normalize("sen(x)") || n === normalize("sin(x)");
-        },
-        explainOk:"Correcto: la derivada de sen(x) es cos(x), entonces su integral es sen(x)+C.",
-        explainBad:"Pista: busca una función cuya derivada sea cos(x). Esa función es sen(x)."
-      },
-      {
-        level: 1, diff:"Fácil", type:"mcq", points:10,
-        prompt:"3) Propiedad: ∫ (3f(x)) dx es igual a…",
-        choices:["3∫ f(x) dx","∫ f(x) dx + 3","∫ f(x) dx / 3","No se puede simplificar"],
-        answerIndex:0,
-        explainOk:"Correcto: linealidad ⇒ ∫a f(x) dx = a∫f(x) dx.",
-        explainBad:"Error típico: sumar 3 “por fuera”. No: el 3 multiplica toda la integral."
-      },
-      {
-        level: 1, diff:"Fácil", type:"input", points:10,
-        prompt:"4) Calcula ∫ (1/x) dx = ________ + C",
-        placeholder:"Ej: ln|x|",
-        validate:(raw)=> {
-          const n = normalize(raw);
-          return n === normalize("ln|x|") || n === normalize("ln(x)") || n === normalize("ln(abs(x))");
-        },
-        explainOk:"Correcto: ∫(1/x) dx = ln|x| + C.",
-        explainBad:"Pista: 1/x es el caso especial que produce logaritmo natural: ln|x|."
+        level: 1,
+        type: "input",
+        prompt: "∫ 7x^3 dx",
+        answers: ["7x^4/4 + C", "(7/4)x^4 + C", "7/4 x^4 + C", "7x^4/4"],
+        points: 10,
+        explainOk: "Aplicando la regla de potencia: ∫x^n dx = x^(n+1)/(n+1) + C.",
+        explainBad: "Recuerda aumentar el exponente en 1 y dividir por ese nuevo exponente.",
+        validate: (raw) => {
+          const a = normalize(raw);
+          const opts = ["7x4/4+c","(7/4)x4+c","7/4x4+c","7x4/4"];
+          // accept common normalized forms
+          return opts.some(o => a.includes("7") && (a.includes("x4") || a.includes("x^4")));
+        }
       },
 
-      // NIVEL 2 — MEDIO (4)
       {
-        level: 2, diff:"Medio", type:"mcq", points:15,
-        prompt:"5) Sustitución: ∫ 2x·(x²+1)³ dx",
-        choices:["(x²+1)⁴ + C","(x²+1)⁴/4 + C","2(x²+1)⁴ + C","(x²+1)³ + C"],
-        answerIndex:1,
-        explainOk:"u=x²+1 ⇒ du=2x dx. ∫u³ du = u⁴/4 + C ⇒ (x²+1)⁴/4 + C.",
-        explainBad:"Error típico: integrar u³ como u⁴ sin /4. Recuerda dividir entre 4."
-      },
-      {
-        level: 2, diff:"Medio", type:"input", points:15,
-        prompt:"6) Si u = 3x−2, entonces du = ______ dx",
-        placeholder:"Escribe solo el número (ej: 3)",
-        validate:(raw)=> normalize(raw) === "3",
-        explainOk:"Correcto: d(3x−2)/dx = 3 ⇒ du = 3 dx.",
-        explainBad:"Pista: deriva u respecto a x. Te queda 3."
-      },
-      {
-        level: 2, diff:"Medio", type:"mcq", points:15,
-        prompt:"7) Propiedad: ∫(f(x) + g(x)) dx =",
-        choices:["∫f(x) dx + ∫g(x) dx","∫f(x) dx · ∫g(x) dx","∫f(x) dx − ∫g(x) dx","No se puede separar"],
-        answerIndex:0,
-        explainOk:"Correcto: linealidad ⇒ se integra término a término.",
-        explainBad:"Error típico: creer que no se separa. Sí se puede por linealidad."
-      },
-      {
-        level: 2, diff:"Medio", type:"mcq", points:15,
-        prompt:"8) ∫ (1/(x+5)) dx =",
-        choices:["ln|x| + C","ln|x+5| + C","1/(x+5) + C","(x+5)²/2 + C"],
-        answerIndex:1,
-        explainOk:"Correcto: es 1/u con u=x+5 ⇒ ln|x+5| + C.",
-        explainBad:"Pista: el logaritmo debe llevar el mismo (x+5)."
+        level: 1,
+        type: "input",
+        prompt: "∫ e^x dx",
+        answers: ["e^x + C", "e^x"],
+        points: 10,
+        explainOk: "La integral de e^x es e^x + C.",
+        explainBad: "La derivada de e^x es e^x, por eso su integral es e^x + C.",
+        validate: (raw) => {
+          const a = normalize(raw);
+          return ["ex+c","ex","e^x+c","e^x"].some(v => a.includes(v.replace("^","")));
+        }
       },
 
-      // NIVEL 3 — DIFÍCIL (4)
       {
-        level: 3, diff:"Difícil", type:"mcq", points:20,
-        prompt:"9) Por partes: ∫ x·e^x dx",
-        choices:["x·e^x + C","e^x(x−1) + C","e^x(x+1) + C","e^x/x + C"],
-        answerIndex:1,
-        explainOk:"u=x, dv=e^x dx ⇒ v=e^x. ∫x e^x dx = x e^x − ∫e^x dx = e^x(x−1)+C.",
-        explainBad:"Error típico: olvidar el “− ∫v du”. Por partes: u·v − ∫v du."
+        level: 1,
+        type: "mcq",
+        prompt: "∫ 1/x dx",
+        choices: ["ln|x| + C", "1/(x^2) + C", "x + C", "e^x + C"],
+        answerIndex: 0,
+        points: 10,
+        explainOk: "∫1/x dx = ln|x| + C.",
+        explainBad: "Esta es la integral logarítmica básica: ln|x| + C."
       },
+
+      // Nivel 2 — Medio (Sustitución)
       {
-        level: 3, diff:"Difícil", type:"input", points:20,
-        prompt:"10) Por partes: si dv = dx, entonces v = ________",
-        placeholder:"Ej: x",
-        validate:(raw)=> normalize(raw) === "x",
-        explainOk:"Correcto: v = ∫dx = x.",
-        explainBad:"Pista: integra dv. Si dv=dx, la integral es x."
+        level: 2,
+        type: "mcq",
+        prompt: "∫ 2x cos(x^2) dx",
+        choices: ["sin(x^2) + C", "cos(x^2) + C", "2 sin(x^2) + C", "x sin(x^2) + C"],
+        answerIndex: 0,
+        points: 15,
+        explainOk: "Con u = x^2, du = 2x dx → ∫cos(u) du = sin(u) + C.",
+        explainBad: "Usa sustitución u = x^2 para simplificar la integral."
       },
+
       {
-        level: 3, diff:"Difícil", type:"mcq", points:20,
-        prompt:"11) ∫ sin(3x) dx =",
-        choices:["−cos(3x) + C","−(1/3)cos(3x) + C","(1/3)cos(3x) + C","cos(3x) + C"],
-        answerIndex:1,
-        explainOk:"u=3x ⇒ dx=du/3. ∫sin(u) du/3 = −cos(u)/3 + C = −(1/3)cos(3x)+C.",
-        explainBad:"Error típico: olvidar el factor 1/3 por el 3x."
+        level: 2,
+        type: "input",
+        prompt: "∫ e^{4x} dx",
+        answers: ["(1/4)e^{4x} + C", "1/4 e^{4x} + C", "e^{4x}/4 + C"],
+        points: 15,
+        explainOk: "Con u=4x, du=4 dx → ∫e^u du/4 = (1/4)e^u + C.",
+        explainBad: "No olvides dividir por la derivada interna (4).",
+        validate: (raw) => {
+          const a = normalize(raw);
+          return a.includes("1/4") && (a.includes("e4x") || a.includes("e^4x") || a.includes("e4"));
+        }
       },
+
       {
-        level: 3, diff:"Difícil", type:"mcq", points:20,
-        prompt:"12) Mejor elección para ∫ x·cos(x) dx (por partes):",
-        choices:["u=cos(x), dv=x dx","u=x, dv=cos(x) dx","u=x·cos(x), dv=dx","No se puede por partes"],
-        answerIndex:1,
-        explainOk:"Correcto: por LIATE, u=x (algebraica) y dv=cos(x)dx. Se simplifica al derivar u.",
-        explainBad:"Pista: elige u para que al derivar se simplifique (x → 1)."
+        level: 2,
+        type: "mcq",
+        prompt: "Si u = x^2 + 1, ¿cuál es du/dx?",
+        choices: ["2x", "x", "1", "2"],
+        answerIndex: 0,
+        points: 10,
+        explainOk: "Derivando u = x^2 + 1 se obtiene du/dx = 2x.",
+        explainBad: "Aplícale la regla de potencia al término x^2."
       },
+
+      // Nivel 3 — Difícil (Por partes, trigonométricas, raíces)
+      {
+        level: 3,
+        type: "input",
+        prompt: "∫ x e^x dx",
+        answers: ["e^x(x-1) + C", "e^x(x - 1) + C", "e^x*x - e^x + C"],
+        points: 20,
+        explainOk: "Por partes: u=x, dv=e^x dx → ∫x e^x dx = e^x(x-1)+C.",
+        explainBad: "Aplica la fórmula ∫u dv = uv − ∫v du."
+      },
+
+      {
+        level: 3,
+        type: "mcq",
+        prompt: "∫ x sin(x) dx",
+        choices: ["−x cos(x) + sin(x) + C", "x cos(x) + C", "cos(x) + C", "sin(x) + C"],
+        answerIndex: 0,
+        points: 20,
+        explainOk: "Por partes con u=x y dv=sin x dx produce −x cos x + sin x + C.",
+        explainBad: "No olvides el signo al integrar sin(x)."
+      },
+
+      {
+        level: 3,
+        type: "input",
+        prompt: "∫ dx / sqrt(9 - x^2)",
+        answers: ["arcsin(x/3) + C", "arcsen(x/3) + C", "arcsin(x/3)"],
+        points: 20,
+        explainOk: "Fórmula estándar: ∫ dx / sqrt(a^2 - x^2) = arcsin(x/a) + C, con a=3.",
+        explainBad: "Reconoce la forma a^2 - x^2 y usa arcsin(x/a).",
+        validate: (raw) => {
+          const a = normalize(raw);
+          return a.includes("arcsin") && (a.includes("x/3") || a.includes("x3"));
+        }
+      }
     ];
   }
 
